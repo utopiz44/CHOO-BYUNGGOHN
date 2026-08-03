@@ -2,7 +2,7 @@
 ### 규모보다 어휘가 먼저다 — 소규모 예산 한국어 BERT 사전학습을 위한 서브워드 토크나이제이션 전략의 실증 연구
 
 > **AIFFEL 리서처 18기 · Main Quest 3 제출물**
-> 추병곤 (Byung-Gohn Choo) · 모두의연구소 AIFFEL 리서치 18기
+> 추병곤 (BYUNGGOHN CHOO) · 모두의연구소 AIFFEL 리서처 18기
 > 📧 utopiz@naver.com · 2026년 7월
 
 ---
