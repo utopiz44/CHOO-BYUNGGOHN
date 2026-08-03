@@ -3,6 +3,7 @@
 
 > **AIFFEL 리서처 18기 · Main Quest 3 제출물**
 > 추병곤 (BYUNGGOHN CHOO) · 모두의연구소 AIFFEL 리서처 18기
+> 
 > 📧 utopiz@naver.com · 2026년 7월
 
 ---
