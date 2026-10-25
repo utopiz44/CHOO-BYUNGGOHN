@@ -1,0 +1,582 @@
+% !TEX program = xelatex
+% ARTHÉMIS 중간 논문 뼈대 v2 — 다운사이징 실행계획서 v1.1 반영 (2026-09-23)
+% 빨간 [ ] = 실측 후 기입, 보라 [작성: ...] = 해당 절에 채울 내용과 기한
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[top=1in,bottom=1.1in,left=0.8125in,right=0.8125in,columnsep=0.3125in]{geometry}
+\usepackage{fontspec}
+\usepackage{xetexko}
+\setmainfont{TeX Gyre Termes}
+\setmainhangulfont{Noto Serif CJK KR}[BoldFont={Noto Serif CJK KR Bold}]
+\setsanshangulfont{Noto Sans CJK KR}[BoldFont={Noto Sans CJK KR Medium}]
+\setmonohangulfont{Noto Sans CJK KR}
+\linespread{1.07}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{booktabs,multirow,tabularx,array}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,labelsep=period}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=1.1em}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+
+\definecolor{memC}{HTML}{E67E22}
+\definecolor{memBG}{HTML}{FDF0E4}
+\definecolor{retC}{HTML}{2E6DA4}
+\definecolor{retBG}{HTML}{E8F0F9}
+\definecolor{fillc}{HTML}{B03030}
+\definecolor{todoc}{HTML}{6A3FA0}
+\definecolor{noteBG}{HTML}{F4F1FA}
+
+\newcommand{\fillin}[1]{\textcolor{fillc}{[#1]}}
+\newcommand{\todo}[1]{{\sffamily\footnotesize\textcolor{todoc}{[작성: #1]}}}
+\newcommand{\sT}{\mathsf{T}}
+\newcommand{\sL}{\mathsf{L}}
+\newcommand{\sX}{\mathsf{X}}
+\newcommand{\sV}{\mathsf{V}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\norm}{\operatorname{norm}}
+\newcommand{\op}[1]{\textsc{#1}}
+\renewcommand{\algorithmiccomment}[1]{\hfill{\footnotesize$\triangleright$ #1}}
+
+\algrenewcommand\algorithmicrequire{\textbf{입력:}}
+\algrenewcommand\algorithmicensure{\textbf{출력:}}
+\makeatletter
+\renewcommand{\ALG@name}{알고리즘}
+\makeatother
+\renewcommand{\figurename}{그림}
+\renewcommand{\tablename}{표}
+
+\setlength{\abovedisplayskip}{5pt}
+\setlength{\belowdisplayskip}{5pt}
+\setlength{\textfloatsep}{10pt}
+
+\hypersetup{pdftitle={ARTHEMIS Interim Paper v2 (downsized skeleton)},pdfauthor={추병곤}}
+
+\begin{document}
+
+\twocolumn[{%
+\centering
+{\small\sffamily AIFFEL Research 18기 365챌린지 \quad|\quad 중간 논문 뼈대 v2 (다운사이징 반영) \quad|\quad 10/22 제출 예정}\par
+\vspace{0.9em}
+{\Large\bfseries ARTHÉMIS: 맥락 분리형 장기 취향 메모리를 갖춘\\[2pt] 대화형 아트 큐레이션 에이전트 — 설계와 통제 평가 프로토콜\par}
+\vspace{0.6em}
+{\large Context-Separated Long-Term Taste Memory for Conversational Art Curation:\\ Design and a Controlled Evaluation Protocol\par}
+\vspace{1.1em}
+\begin{tabular}{c}
+추병곤 \\
+{\small 모두의연구소 AIFFEL 리서치 18기 · 365챌린지}\\
+{\small\ttfamily \fillin{email}}
+\end{tabular}
+\vspace{1.0em}
+
+\colorbox{noteBG}{\parbox{0.94\textwidth}{\small\sffamily
+\textbf{문서 상태.} 본 원고는 2026-09-23 제안서 피드백과 「다운사이징 실행계획서 v1.1」을 반영한 중간 논문의 뼈대이다. 설계가 확정된 부분은 본문으로 작성했고, 실측이 필요한 값은 \textcolor{fillc}{[빨간 괄호]}로, 채워야 할 서술은 \textcolor{todoc}{[작성: 보라 괄호]}로 표시했다. 본문의 모든 수치 목표는 계획값이며 실측 결과가 아니다. 원안 대비 변경 내역은 부록 A에 있다.}}
+\vspace{1.2em}
+}]
+
+%==================================================
+\noindent{\large\bfseries 초록}\par\vspace{0.4em}
+{\small\noindent
+미술관 아카이브는 작가·연도·재료 같은 전문 메타데이터로 조직되어 있지만, 관람객은 ``마음이 가라앉는 거친 질감의 그림''처럼 감각과 상황의 언어로 말한다. 대형 언어 모델(LLM) 기반 대화형 추천은 이 간극을 좁힐 수 있다. 그러나 세션이 끝나면 취향이 사라지고, 기억을 도입하더라도 한 사람 안의 서로 다른 감상 맥락(혼자의 사유형 관람과 자녀 동반 체험형 관람)이 하나의 프로필로 섞이는 문제가 남는다. 본 연구는 이 \emph{맥락 오염} 문제에 초점을 맞춘 ARTHÉMIS를 제안한다. ARTHÉMIS는 발화에서 근거 구간을 동반한 미학 신호를 추출하는 취향 에이전트와, 취향을 받아 작품을 검색하고 확인된 전시 정보만 안내하는 작품·전시 에이전트로 구성된다. 취향 에이전트는 세션 요약(Session Node)을 취향 클러스터(Taste Cluster)로 조직하고, 질의 시점의 맥락에 맞는 클러스터만 선택(Context Router)해 텍스트 프로필로 공급한다. 평가는 메모리가 질의 재작성 프롬프트의 한 슬롯에 들어가는 방식만 다른 세 조건(무기억 B1, 전체 이력 투입 B2, 구조화 메모리 B4)을 고정 스크립트 재생 방식으로 비교한다. 주 가설은 두 개이다. B4가 B2보다 맥락 오염률(CR@10)을 낮추는가(H1), 그리고 B1보다 개인화 순위 품질(NDCG@10)을 높이는가(H2)이다. 두 가설은 사용자 단위 짝지은 설계와 Holm 보정으로 검정한다. 추가로 취향 에이전트의 신호 추출기를 OpenAI 플랫폼 지도학습 파인튜닝과 프롬프트 기준선으로 비교한다. 본 중간 논문은 문제 정의, 설계, 평가 프로토콜과 \fillin{W1–W4 개발 세트 예비 결과}를 보고하며, 확증 검정 결과는 최종 보고서에서 보고한다.\par}
+\vspace{0.6em}
+
+%==================================================
+\section{서론}
+\label{sec:intro}
+
+공공 미술관과 온라인 예술 플랫폼은 방대한 소장품을 공개하고 있지만, 검색 가능한 필드는 작가명, 작품명, 제작 연도, 재료, 사조처럼 미술사 어휘를 이미 갖춘 사용자를 전제한다. 반면 일반 관람객의 요구는 감각적이고 상황적이다. ``요즘 머리가 복잡해서, 색이 요란하지 않고 표면의 물질감이 묵직한 그림 앞에 가만히 있고 싶다''는 발화에는 작가명도 사조명도 없다. LLM 기반 대화형 추천 시스템(CRS)~\cite{friedman2023recllm,jannach2021survey}은 이런 발화를 조형 어휘로 번역해 이 간극을 좁힐 수 있다.
+
+그러나 예술 감상에서 개인화가 실패하는 지점은 번역보다 \textbf{기억}에 있다. 첫째, 현행 대화 시스템은 세션을 독립 사건으로 취급해 사용자가 감상 이력을 매번 다시 설명하게 한다. 둘째, 장기 메모리를 도입해도 모든 기억을 하나의 프로필로 합치면 평일 저녁의 명상적 관람 취향이 주말 가족 나들이 추천에 섞인다. AlpsBench~\cite{xiao2026alpsbench}는 명시적 메모리가 회상은 높이지만 선호 정렬을 자동으로 보장하지 않음을 보고했다. 기억은 많을수록 좋은 것이 아니라 \emph{선택적으로} 쓰여야 한다. 셋째, 범용 LLM은 존재하지 않는 전시 일정이나 장소를 그럴듯하게 생성할 수 있어, 추천이 실제 관람으로 이어지는 데 방해가 된다.
+
+본 연구는 두 번째 문제를 핵심 질문으로 삼고, 세 번째 문제는 확인된 필드만 안내하는 설계 제약으로 다룬다. 기여는 다음과 같다.
+\begin{itemize}
+\item \textbf{C1. 맥락 분리형 계층 취향 메모리.} 근거 발화를 보존하는 Session Node, 이를 편입(\textsc{Merge})·창발(\textsc{Genesis})·억제 규칙으로 조직하는 Taste Cluster, 질의 맥락에 맞는 클러스터만 활성화하는 Context Router(§\ref{sec:memory}).
+\item \textbf{C2. 통제 비교 프로토콜.} 메모리가 공유 프롬프트의 한 슬롯에 들어가는 방식만 다른 세 조건, 고정 스크립트 재생 평가, 사용자 단위 짝지은 통계로 메모리 \emph{구조}의 효과를 분리한다(§\ref{sec:rq}, §\ref{sec:eval}).
+\item \textbf{C3. 역할 특화 추출 에이전트.} 큐레이터가 구축한 감각어–조형어 사전과, OpenAI 플랫폼 파인튜닝 추출기와 프롬프트 추출기의 비교(§\ref{sec:ft}).
+\end{itemize}
+멀티모달 검색, 크로스 인코더 재순위, 전시 관람 가능성 필터, 설명 충실도 절제는 이번 범위에서 제외하고 향후 과제로 둔다(부록 A). 본문에서 ``개선한다''는 표현은 검정할 가설을 뜻한다.
+
+%==================================================
+\section{관련 연구}
+\label{sec:related}
+
+\textbf{LLM 기반 대화형 추천.} RecLLM~\cite{friedman2023recllm}은 대화 관리, 코퍼스 검색, 사용자가 읽고 고칠 수 있는 자연어 프로필, 사용자 시뮬레이터를 LLM으로 구성했다. CSI~\cite{kim2025csi}는 매 턴 맥락 프로필을 갱신하며 선호 탐색과 제안 행동을 선택한다. 본 연구는 자연어 프로필과 선제적 명료화 질문~\cite{aliannejadi2019asking}을 차용하되, 두 연구가 다루지 않은 다회차 세션의 취향 구조와 맥락 분리에 초점을 둔다.
+
+\textbf{에이전트 메모리.} A-MEM~\cite{xu2025amem}은 새 기억이 기존 노트와 링크를 형성하며 진화하는 구조를, Mem0~\cite{chhikara2025mem0}는 대화에서 사실을 추출해 지속 저장하는 방식을 제안했다. 이들은 범용 사실 기억을 대상으로 하며, 감상 동기·조형 선호·방문 맥락 같은 예술 도메인 스키마와 맥락별 선택적 활성화는 제공하지 않는다.
+
+\textbf{개인화 메모리 평가.} LoCoMo~\cite{maharana2024locomo}와 LongMemEval~\cite{wu2025longmemeval}은 장기 대화 기억을, AlpsBench~\cite{xiao2026alpsbench}는 실대화 기반의 추출·갱신·검색·활용 과업을 평가한다. 본 연구는 이 틀에 예술 도메인 고유의 맥락 오염 지표를 더한다.
+
+\textbf{예술 이해.} SemArt~\cite{garcia2018semart}와 ArtEmis~\cite{achlioptas2021artemis}는 작품과 해설문·정서 언어의 연결을 다루지만, 대화형 장기 개인화는 다루지 않는다.
+
+\todo{관련 연구 각 문단 끝에 ``본 연구와의 차이'' 한 문장 보강. 문헌 서지는 공식 페이지로 검증 (W4)}
+
+%==================================================
+\section{문제 정의와 연구 질문}
+\label{sec:rq}
+
+\subsection{과업 정식화}
+사용자 $u$는 세션 열 $\cS_u=(S^{(1)},\dots,S^{(M)})$을 가지며, 각 세션은 발화 열 $(x_1,y_1,\dots,x_{T_m},y_{T_m})$이다. 작품 코퍼스 $\cA=\{a_j\}$의 각 작품은 텍스트 $a^{\mathrm{txt}}$(해설문, 메타데이터, 감각·조형 태그)를 갖고, 평가 시점에 동결한 전시 스냅샷을 $\cE_{\mathrm{eval}}$이라 한다. 시스템은 장기 메모리 $\cM_u$를 유지하며, 각 턴에서
+\begin{equation}
+\bigl(d_t,\,R_t,\,y_t\bigr)=\pi\bigl(x_{\le t},\,y_{<t},\,\Phi(\cM_u,x_t),\,\cA,\,\cE_{\mathrm{eval}}\bigr)
+\label{eq:task}
+\end{equation}
+를 산출한다. $d_t$는 대화 행동(질문·추천·전시 안내), $R_t\in\cA^{10}$은 순위화된 추천 목록, $y_t$는 응답이다. $\Phi$는 메모리를 \textbf{텍스트 프로필 블록}으로 바꾸는 함수이며, 비교 조건은 오직 $\Phi$만 다르다(§\ref{sec:conds}). 장기 메모리는 세션 종료 시에만 $\cM_u\leftarrow\op{Write}(\cM_u,S^{(m)})$로 갱신된다.
+
+\subsection{연구 질문과 가설}
+\textbf{RQ.} 감상 맥락별로 분리·선택되는 구조화 취향 메모리는, 무기억 LLM 및 과거 대화 전체를 투입하는 방식에 비해 다른 맥락 취향의 혼입을 줄이고 개인화 순위 품질을 높이는가?
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\columnwidth}{@{}l l l c >{\raggedright\arraybackslash}X@{}}
+\toprule
+가설 & 비교 & 주 지표 & 방향 & 분석 대상 \\
+\midrule
+H1 & B2 → B4 & CR@10 & ↓ & 다중 맥락 사용자 \\
+H2 & B1 → B4 & NDCG@10 & ↑ & 전체 사용자 \\
+\bottomrule
+\end{tabularx}
+\caption{확증 가설. 두 검정에 Holm 보정(양측 $\alpha=0.05$)을 적용한다. H1은 본 연구의 고유 주장(같은 정보를 구조화·선택하는 것이 통째로 넣는 것보다 나은가), H2는 무기억 LLM 대비 개인화 효과이다. 그 밖의 지표는 탐색적 결과로 보고한다.}
+\label{tab:hyp}
+\end{table}
+
+\subsection{비교 조건}
+\label{sec:conds}
+원안은 질의 벡터를 $v_t=\norm(\beta q_t+(1-\beta)m_t)$로 혼합했으나, 축소안은 모든 조건이 공유하는 질의 재작성 프롬프트의 한 슬롯에 텍스트 프로필 $\Phi$를 넣는다. 이렇게 하면 B2(원문 이력)와 B4(구조화 프로필)가 같은 채널에서 \emph{내용만} 다른 조건이 되어, 효과를 메모리 구조에 귀속할 수 있다.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\columnwidth}{@{}l >{\raggedright\arraybackslash}X c@{}}
+\toprule
+ID & 메모리 슬롯 $\Phi(\cM_u,x_t)$ & 상태 \\
+\midrule
+B1 & $\varnothing$ (현재 세션 발화만) & 필수 \\
+B2 & 과거 세션 전사 전체를 최신순으로 이어붙여 입력 한도에서 절단 & 필수 \\
+B3 & $x_t$와 유사한 상위 $k$개 Session Node 요약 (라우팅 없음) & 선택 \\
+B4 & Router가 선택한 Taste Cluster 기술문 + 근거 발화 인용 & 필수 \\
+\midrule
+\multicolumn{3}{@{}p{0.96\columnwidth}@{}}{\footnotesize \textbf{고정 요소:} 질의 재작성·응답 생성 LLM과 프롬프트, temperature, seed, 검색 인덱스($\sT$, $\sL$), RRF 설정, 코퍼스·전시 스냅샷, 대화 스크립트.} \\
+\bottomrule
+\end{tabularx}
+\caption{비교 조건. B3를 수행하면 B2→B3(요약 효과)와 B3→B4(클러스터·라우팅 효과)로 H1을 분해하는 탐색 분석이 가능하다.}
+\label{tab:conds}
+\end{table}
+
+%==================================================
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize,
+  box/.style={draw,rounded corners=2pt,align=left,inner sep=4pt},
+  mem/.style={box,draw=memC,fill=memBG,thick},
+  ret/.style={box,draw=retC,fill=retBG,thick},
+  plain/.style={box,draw=black!60,fill=white,align=center},
+  arr/.style={-{Stealth[length=2mm]},thick,black!70},
+]
+\node[plain,text width=2.0cm] (u) at (0,0) {\textbf{관람객 발화}\\감각·상황 언어\\$x_t$};
+\node[plain,text width=2.2cm,fill=black!80,text=white,draw=black!80] (o) at (3.0,0) {\textbf{오케스트레이터}\\행동 $d_t$ 선택\\질문 / 추천 / 안내};
+\node[mem,text width=6.4cm,anchor=west] (A) at (5.0,1.35) {\textbf{에이전트 A · 취향}\\
+① 신호 추출 → JSON(명시·암묵·근거 span)\\
+② Context Router → 활성 클러스터 $k^\ast$\\
+③ 프로필 블록 $\Phi$ 생성 \quad ④ 세션 종료 시 $\op{Write}$\\[1pt]{\scriptsize\textcolor{memC}{※ ①이 OpenAI SFT 적용 지점 (G0·G2 게이트)}}};
+\node[ret,text width=6.4cm,anchor=west] (B) at (5.0,-1.35) {\textbf{에이전트 B · 작품·전시}\\
+⑤ 질의 재작성 (공유 프롬프트 + 슬롯 $\Phi$)\\
+⑥ $\sT$(임베딩) + $\sL$(BM25) → RRF Top-10\\
+⑦ 전시 연결(규칙) \quad ⑧ 확인 필드만 안내};
+\node[mem,text width=2.9cm,align=center] (M) at (14.1,1.35) {\textbf{장기 메모리 $\cM_u$}\\Session Node · Taste Cluster};
+\node[plain,text width=2.9cm] (C) at (14.1,-0.75) {\textbf{작품 코퍼스}\\MMCA · $\sT$/$\sL$ 인덱스};
+\node[plain,text width=2.9cm] (E) at (14.1,-2.05) {\textbf{전시 스냅샷} $\cE_{\mathrm{eval}}$\\문화포털 API · 기준일 고정};
+\draw[arr] (u) -- (o);
+\draw[arr] (o.north east) -- (A.west);
+\draw[arr] (o.south east) -- (B.west);
+\draw[arr,draw=memC] (A.south) -- node[right,font=\scriptsize,text=memC]{프로필 블록 $\Phi$} (B.north);
+\draw[arr,draw=memC] (A.east) -- (M.west);
+\draw[arr,draw=retC] (B.east) -- (C.west);
+\draw[arr,draw=retC] (B.east) -- (E.west);
+\end{tikzpicture}}
+\caption{축소 시스템 구조. 에이전트 B는 모든 비교 조건(B1–B4)에서 동일하며, 조건 간 차이는 에이전트 A가 공급하는 프로필 블록 $\Phi$의 내용뿐이다. 모든 도구 호출은 스냅샷 ID·프롬프트 해시·seed와 함께 JSONL 감사 로그로 남는다.}
+\label{fig:arch}
+\end{figure*}
+
+\section{시스템 설계}
+\label{sec:system}
+
+\subsection{개요}
+그림~\ref{fig:arch}는 멘토 피드백의 ``취향 에이전트 / 미술 정보 에이전트'' 분할을 채택한 구조이다. 원안의 5단계 파이프라인(신호 추출, 메모리, 검색, 그라운딩, 응답)은 두 에이전트의 내부 단계로 흡수된다. 오케스트레이터는 ReAct~\cite{yao2023react} 형식으로 매 턴 행동을 고르며, 라우팅 불확실성이 높으면 추천보다 확인 질문을 우선한다.
+
+\subsection{에이전트 A: 미학 신호 추출}
+\label{sec:extract}
+추출기는 현재 발화 $x_t$, 현재 세션의 최근 $k$턴, 감각어–조형어 사전의 매칭 후보를 입력으로 받아 다음 스키마의 JSON을 출력한다: \texttt{explicit}\{artist, medium, region, visit\_time, companion\}, \texttt{implicit}\{motive $\in$ 사유·회복·학습·체험, formal\{color, texture, scale, density\}, avoid[], difficulty\}, \texttt{evidence}[\{turn, span\}], \texttt{confidence}, \texttt{negation}[]. 스키마 검증에 실패하면 1회 재시도하고, 근거 span이 원문에 없으면 해당 신호를 폐기한다. 감각어는 큐레이터가 구축한 사전(100–200항목)으로 조형 개념에 연결된다(예: ``거친 질감''→마티에르·임파스토). 정서 상태의 원문(예: ``번아웃'')은 저장하지 않고 감상 목적 수준(회복)으로 추상화한다. 추출기의 구현(파인튜닝 또는 프롬프트)은 §\ref{sec:ft}의 G2 게이트에서 결정한다.
+
+\subsection{에이전트 A: 계층형 취향 메모리}
+\label{sec:memory}
+\textbf{Session Node.} 세션 종료 시 LLM은 세션을 $n_i=(\mathrm{summary}_i,\mathrm{intent}_i,\mathrm{visit}_i,e_i,z_i,s_i)$로 구조화한다. $e_i$는 근거 발화, $z_i=f_\sT(\mathrm{summary}_i)$는 텍스트 임베딩, $s_i\in[0,1]$은 세션 만족도(명시 평점이 없으면 0.5)이다. 노드 가중치는
+\begin{equation}
+w_i=\exp(-\nu\,\Delta t_i)\,(0.5+0.5\,s_i),\qquad \nu=\ln 2/h
+\label{eq:weight}
+\end{equation}
+이며 반감기 $h$의 초기값은 30일이다.
+
+\textbf{Taste Cluster.} 클러스터 $k$는 멤버 노드 $N_k$, 가중 중심 $\mu_k=\norm(\sum_{i\in N_k}w_iz_i)$, 상태 $\in\{\texttt{tentative},\texttt{active},\texttt{suppressed}\}$, LLM이 합성한 기술문을 갖는다. 새 노드와 최근접 클러스터의 유사도 $\sigma$가 $\tau_m$ 이상이면 \textsc{Merge}, 아니면 새 \texttt{tentative} 클러스터를 만든다(\textsc{Genesis}). 서로 다른 $n_{\mathrm{act}}=2$개 세션에서 재관찰되면 \texttt{active}로 확정하는데, 이는 일시적 기분과 실제 취향 전환을 구분하기 위한 장치이다. 명시적 부정 선호에 대응하는 클러스터는 \texttt{suppressed}로 두어 삭제와 억제를 구분한다. $\tau_m$의 초기값 0.78은 임베딩 모델 간에 이식되지 않으므로 개발 세트의 편입/분리 라벨로 보정한다(알고리즘~\ref{alg:write}). 원안의 \textsc{Bridge}와 \texttt{stale} 상태는 판정 로그만 남기고 이번 범위에서 동작에 쓰지 않는다.
+
+\begin{algorithm}[t]
+\caption{$\op{Write}$: 세션 종료 시 장기 메모리 갱신 (축소판)}
+\label{alg:write}
+\small
+\begin{algorithmic}[1]
+\Require 메모리 $\cM_u$, 세션 $S$, 임계값 $\tau_m$, 확정 횟수 $n_{\mathrm{act}}$
+\Ensure 갱신된 $\cM_u$, 갱신 로그 $\mathcal{L}$
+\State $n\gets\op{Structure}(S)$;\ $z\gets f_\sT(n.\mathrm{summary})$;\ $\mathcal{L}\gets\varnothing$
+\State $\cK\gets\{k\in\cM_u:\mathrm{status}_k\ne\texttt{suppressed}\}$
+\If{$\cK\neq\varnothing$}
+  \State $k^\dagger\gets\arg\max_{k\in\cK}\cos(z,\mu_k)$;\ $\sigma\gets\cos(z,\mu_{k^\dagger})$
+\EndIf
+\If{$\cK\neq\varnothing$ \textbf{and} $\sigma\ge\tau_m$} \Comment{\textsc{Merge}}
+  \State $N_{k^\dagger}\gets N_{k^\dagger}\cup\{n\}$;\ $\mu_{k^\dagger}$·기술문 갱신;\ $\mathcal{L}\gets\mathcal{L}\cup\{\text{Keep/Revise}\}$
+  \If{$\#\text{세션}(N_{k^\dagger})\ge n_{\mathrm{act}}$} $\mathrm{status}_{k^\dagger}\gets\texttt{active}$ \EndIf
+\Else \Comment{\textsc{Genesis}}
+  \State 새 클러스터 $k'$: $N_{k'}=\{n\}$, \texttt{tentative};\ $\mathcal{L}\gets\mathcal{L}\cup\{\text{Add}\}$
+\EndIf
+\For{각 부정 선호 $q\in n.\mathrm{neg}$, $\op{Matches}(q,k)$인 $k$}
+  \State $\mathrm{status}_k\gets\texttt{suppressed}$;\ $\mathcal{L}\gets\mathcal{L}\cup\{\text{Suppress}\}$
+\EndFor
+\State \Return $\cM_u,\ \mathcal{L}$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Context Router.} 검색 시 모든 클러스터를 평균하지 않는다. 후보 $\cK_r$은 \texttt{active}와 \texttt{tentative} 클러스터이며, 질의 임베딩 $q_t=f_\sT(x_t)$와 추출된 맥락 슬롯(동행, 목적, 시간대) $c_t$로
+\begin{equation}
+p(k\mid x_t,c_t)=\operatorname*{softmax}_{k\in\cK_r}\bigl(\eta\cos(q_t,\mu_k)+\theta\,\mathrm{match}_k(c_t)\bigr)
+\label{eq:router}
+\end{equation}
+를 계산한다. $\mathrm{match}_k(c_t)$는 채워진 슬롯 중 클러스터 $k$의 최빈 방문 맥락과 일치하는 비율이다. $\max_kp<\rho$이면 추천 전에 확인 질문(``누구와 가시나요?'')을 1회 수행한다~\cite{aliannejadi2019asking}. B4의 프로필 블록은 $\Phi=\mathrm{desc}(k^\ast)\oplus e_{k^\ast}$($k^\ast=\arg\max_kp$)이다. 초기값은 $\eta=10$, $\theta=2$, $\rho=0.5$이며 개발 세트에서 보정한다.
+
+\subsection{에이전트 B: 검색과 전시 연결}
+\label{sec:retrieval}
+공유 프롬프트가 $x_t$, 현재 세션 이력, 슬롯 $\Phi$로부터 재작성 질의 $\tilde{x}_t$를 만든다. 검색은 해설문·태그의 텍스트 임베딩 인덱스 $\sT$와 한국어 형태소 기반 BM25~\cite{robertson2009bm25} 인덱스 $\sL$을 RRF~\cite{cormack2009rrf}로 융합한다.
+\begin{equation}
+\mathrm{score}(a)=\sum_{r\in\{\sT,\sL\}}\frac{1}{\kappa+\mathrm{rank}_r(a)},\qquad \kappa=60
+\label{eq:rrf}
+\end{equation}
+$\mathrm{rank}_r(a)$는 인덱스 $r$의 상위 200개 안의 순위이며, 없으면 해당 항은 0이다. 상위 10개가 $R_t$이다.
+
+\textbf{전시 연결과 발화 제약.} 작품 $a$는 스냅샷 $\cE_{\mathrm{eval}}$의 전시 $e$와 작가가 일치하거나 태그 Jaccard 계수가 $\tau_g$ 이상일 때 연결된다. 전시 API는 전시 단위이므로 ``작품이 전시 중''이라고 말하지 않고 ``이 취향에 맞는 전시가 열려 있다''로 표현한다. 기간·장소·요금은 스냅샷 필드를 채우는 슬롯 템플릿으로만 출력하며, 자유 서술에 이런 표현이 나타나면 검증기가 해당 문장을 제거한다. 근현대 작품의 저작권을 고려해 원본 이미지는 저장하지 않는다.
+
+\subsection{구현 스택}
+\label{sec:stack}
+LLM은 OpenAI API Platform으로 통일한다. 기반 스냅샷은 \fillin{gpt-4o-2024-08-06 / gpt-4.1-2025-04-14 중 확정}이고, 추출기는 G2에서 채택된 모델을 쓴다. 시뮬레이터와 판정 모델은 순환성을 막기 위해 \fillin{OpenAI 외 모델 계열}을 쓴다. 텍스트 임베딩은 \fillin{모델}, 벡터 저장소는 로컬 FAISS, 데모는 Streamlit이다. 전 과정은 GPU 없이 API와 CPU로 실행된다. 평가와 통계는 자체 Python 스크립트로 수행하고, 프롬프트는 코드 저장소에서 버전 관리한다.
+
+%==================================================
+\section{추출 에이전트의 특화: 파인튜닝과 프롬프트 기준선}
+\label{sec:ft}
+
+\subsection{플랫폼 제약}
+OpenAI의 셀프서브 파인튜닝은 2026년 5월 7일부터 파인튜닝 이력이 없는 조직에서 작업을 만들 수 없고, 7월 2일부터는 최근 60일 안에 파인튜닝 모델로 추론한 이력이 없는 조직도 작업을 만들 수 없다~\cite{openai_deprecations}. 또한 gpt-4-0613, gpt-4o-2024-05-13, ft-gpt-4는 2026년 10월 23일에 API가 종료된다~\cite{openai_deprecations}. 이는 본실험 기간(10/23–10/29)과 겹치므로 GPT-4 계열 중 종료 공지가 없는 스냅샷을 기반 모델로 쓴다~\cite{openai_gpt4o_ft}. 자격은 G0 게이트(9/25)에서 10개 예제로 실제 작업을 생성해 확인했다: \fillin{G0 결과 — 성공/실패, 조직, 기반 스냅샷}.
+
+\subsection{학습 데이터}
+채팅 형식 JSONL로 구성한다. system은 과업 계약(§\ref{sec:extract}), user는 현재 발화와 최근 $k$턴과 사전 후보, assistant는 스키마를 만족하는 JSON이다. 학습 \fillin{200–300}건, 검증 \fillin{50}건, 시험 \fillin{60}건이며, 원천은 연구자가 큐레이터로서 작성한 시드 발화, 본 평가에서 제외한 페르소나 A(정서 발견형) 스크립트, 다른 모델 계열로 증강한 변형이다. 모든 예제는 사람이 검수한다. 평가용 시뮬레이션 사용자의 발화는 학습에 포함하지 않으며, 사용자 단위 분할과 해시 목록으로 누수를 점검한다.
+
+\subsection{비교와 채택 규칙 (G2, 10/6)}
+E-P(동일 기반 스냅샷 + 과업 계약 + few-shot 8–16개 + 구조화 출력)와 E-FT(파인튜닝 모델 + 짧은 지시문)를 같은 시험 세트에서 비교한다. 측정은 명시·암묵 신호별 micro-F1, 근거 span 엄격 F1(토큰 IoU $\ge0.5$), 스키마 적합률, 호출당 지연·비용이다. 암묵 F1 차이의 사용자 단위 bootstrap 95\% CI 하한이 0보다 크면 E-FT를 채택한다. CI가 0을 포함하면 비용·지연이 낮은 쪽을 채택한다. 채택된 추출기는 본실험 전에 동결한다. G0에서 자격이 확인되지 않으면 E-P를 채택하고, 필요시 소형 오픈 모델 LoRA를 추출기에 한해 검토한다. 이 비교는 확증 가설에 포함하지 않는 탐색적 결과이다.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+추출기 & F1$_{\text{명시}}$ & F1$_{\text{암묵}}$ & 엄격 F1 & 적합률 & 지연 \\
+\midrule
+E-P & \fillin{ } & \fillin{ } & \fillin{ } & \fillin{ } & \fillin{ } \\
+E-FT & \fillin{ } & \fillin{ } & \fillin{ } & \fillin{ } & \fillin{ } \\
+\midrule
+목표 & $\ge$0.75 & $\ge$0.50 & — & — & — \\
+\bottomrule
+\end{tabular}
+\caption{G2 추출기 비교 (시험 세트 $n=$\fillin{ }, 개발 단계 결과). 목표는 계획값이며 실측값이 아니다.}
+\label{tab:ft}
+\end{table}
+
+%==================================================
+\section{평가 설계}
+\label{sec:eval}
+
+\subsection{데이터}
+작품 층은 국립현대미술관(MMCA) 소장품 공개 데이터의 메타데이터와 해설문만 사용한다(수집 경로·이용 조건 \fillin{ }, 해설문 보유 작품 \fillin{ }건). 전시 층은 문화포털 공연·전시 API를 평가 개시 시점에 한 번 동결한 스냅샷 $\cE_{\mathrm{eval}}$(기준일 \fillin{ }, 체크섬 \fillin{ })이다. 두 원천은 artwork, exhibition, link, lexicon 네 테이블의 통합 스키마로 정리한다. 감각어–조형어 사전은 v0 100항목에서 v1 200항목으로 확장하며, Getty AAT~\cite{getty_aat} 식별자는 가능한 경우에만 병기한다.
+
+\subsection{고정 스크립트 재생 시뮬레이션}
+대화형 시뮬레이션을 조건마다 따로 돌리면 시스템 응답에 따라 사용자 발화가 달라져, 조건 간 차이가 메모리 효과인지 대화 경로 차이인지 구분할 수 없다. 따라서 페르소나별 다중 세션 스크립트를 한 번 생성해 동결하고, 모든 조건이 같은 이력으로 메모리를 구축한 뒤 같은 체크포인트에서 검색 결과를 비교한다. 이 방식은 적응적 대화 정책(확인 질문의 효과)을 평가하지 못하며, 이는 한계로 둔다.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\columnwidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\toprule
+유형 & 시나리오 & 역할 \\
+\midrule
+B 다중 맥락형 & 평일 혼자 사유형 관람과 주말 자녀 동반 체험형 관람을 세션마다 교차 & H1, H2 \\
+C 취향 전환형 & 구상 회화 → 3–4번째 세션 이후 미디어·키네틱 설치 & H1(전환 후 구 취향을 $\bar c$로), H2, $T_{\mathrm{rec}}$ \\
+A 정서 발견형 & 사조 어휘 없이 정서·감각어만 사용 & 추출기 개발·학습 전용 \\
+\bottomrule
+\end{tabularx}
+\caption{페르소나 설계. B·C 유형은 각각 \fillin{10–15}개 변형(시뮬레이션 사용자)을 두고, 사용자당 5세션을 생성한다. 암묵적 선호 표현은 선호 발화의 40\% 이상으로 통제한다.}
+\label{tab:persona}
+\end{table}
+
+\subsection{지표}
+\textbf{맥락 오염률.} 현재 맥락 $c$에 적합한 작품 집합을 $\cP_c$, 다른 맥락에 적합한 작품의 합집합을 $\cP_{\bar c}$라 할 때, 다른 맥락에만 적합한 추천의 직접 분율이다. 두 맥락 모두에 적합한 작품은 오염으로 세지 않는다.
+\begin{equation}
+\mathrm{CR@10}=\frac{1}{10}\bigl|\{a\in R_{10}: a\in\cP_{\bar c}\setminus\cP_c\}\bigr|
+\label{eq:cr}
+\end{equation}
+
+\textbf{순위 품질.} 큐레이터 등급 $g\in\{0,1,2,3\}$(무관 / 사조·매체 일치 / 조형 또는 정서 일치 / 조형·정서와 현재 맥락까지 일치)으로 NDCG@10~\cite{jarvelin2002ndcg}을 계산한다. IDCG는 해당 질의의 판정된 전체 풀로 계산한다.
+\begin{equation}
+\mathrm{NDCG@10}=\frac{1}{\mathrm{IDCG@10}}\sum_{i=1}^{10}\frac{2^{g_i}-1}{\log_2(i+1)}
+\label{eq:ndcg}
+\end{equation}
+
+\textbf{탐색적 지표.} 추출 F1(§\ref{sec:ft}), 회복 턴 수 $T_{\mathrm{rec}}$(전환 이후 CR@10 $\le0.10$이 연속 2턴 유지되기까지의 턴 수), 미검증 방문 주장률 UCR(감사 표본), 응답 지연 p95.
+
+\subsection{라벨링}
+평가 질의마다 모든 조건의 상위 10개를 합친 풀을 조건 표시 없이 무작위 순서로 판정한다~\cite{buckley2004incomplete}. 다중 맥락형 사용자는 같은 판정에서 ``다른 맥락에 적합'' 여부도 표시해 $\cP_{\bar c}$를 구성한다. 2차 평가자가 판정의 20\%를 독립 채점하고 순서 척도 Krippendorff's $\alpha$~\cite{hayes2007alpha}를 보고한다(목표 $\ge0.67$). 1차 평가자가 연구자 본인이라는 점은 한계로 명시한다. 예상 판정 수는 기본 시나리오(사용자 20명, 질의 60개)에서 약 1,500건, 1차 평가자 8–12시간이다(계획값).
+
+\subsection{통계 분석}
+분석 단위는 시뮬레이션 사용자이다. 지표를 사용자별로 평균한 뒤 사용자 단위 군집 paired bootstrap~\cite{efron1993bootstrap}(10,000회) 95\% CI, 짝지은 평균 차이, 효과크기 $d_z$를 보고하고, 부호 뒤집기 순열검정(10,000회)을 병행한다. H1·H2에 Holm 보정~\cite{holm1979}을 적용한다. 짝지은 $t$ 근사에서 검정력 0.8로 검출 가능한 최소 효과는 $n=20$일 때 $d_z\approx0.74$, $n=30$일 때 $d_z\approx0.59$(양측 0.025 기준)이다. 따라서 유의하지 않은 결과를 ``효과 없음''으로 해석하지 않고 신뢰구간으로 보고한다. 민감도 분석으로 $\tau_m\pm0.05$와 $\theta=0$(맥락 항 제거)에서 H1의 방향이 유지되는지 확인한다.
+
+%==================================================
+\section{구현 현황 (제출 직전 기입)}
+\label{sec:status}
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\columnwidth}{@{}l l >{\raggedright\arraybackslash}X c@{}}
+\toprule
+게이트 & 기한 & 통과 기준 & 결과 \\
+\midrule
+G0 & 9/25 & 파인튜닝 작업 생성 가능 여부 & \fillin{ } \\
+G1 & 9/29 & 해설문 보유 작품 $\ge500$, 스냅샷 체크섬 & \fillin{ } \\
+G2 & 10/6 & E-P vs E-FT 비교, 추출기 동결 & \fillin{ } \\
+G3 & 10/13 & B1·B2·B4 end-to-end 1회 완주 & \fillin{ } \\
+G4 & 10/21 & 개발 세트 예비 결과, 본 원고 & \fillin{ } \\
+\bottomrule
+\end{tabularx}
+\caption{게이트 현황. 미달한 게이트는 일정 지연이 아니라 범위 축소로 해결하며, 조정 내용을 함께 기록한다.}
+\label{tab:gates}
+\end{table}
+
+\textbf{코퍼스.} 작품 \fillin{ }건, 해설문 \fillin{ }건, 전시 \fillin{ }건, 스냅샷 기준일 \fillin{ }.
+\textbf{개발 세트 예비 결과.} 추출 F1(명시/암묵) \fillin{ }/\fillin{ }; B1·B2·B4 NDCG@10 \fillin{ }/\fillin{ }/\fillin{ }; CR@10 \fillin{ }/\fillin{ }/\fillin{ }; 보정된 $\tau_m=$\fillin{ }, $\eta,\theta,\rho=$\fillin{ }; 라벨링 속도 \fillin{ }건/시간.
+\textbf{조정 사항.} \fillin{미달 게이트와 축소 내용}.
+이 값들은 개발 세트에서 얻은 것으로 확증 검정 결과가 아니다.
+
+\todo{10/21까지 표~\ref{tab:gates}와 위 문단을 실측값으로 채우고, 오류 사례 2–3건을 감사 로그와 함께 서술}
+
+%==================================================
+\section{한계와 윤리적 고려}
+첫째, 주 평가는 시뮬레이션에 의존하므로 절대 성능이 아닌 조건 간 상대 차이로만 해석한다. 둘째, 고정 스크립트 재생은 인과 귀속을 강화하지만 확인 질문 같은 적응적 대화 정책의 효과는 측정하지 못한다. 셋째, 표본 규모상 중간 이상의 효과만 검출할 수 있다. 넷째, 1차 평가자가 연구자 본인이며, 감각어 사전과 기관 해설문은 어휘·문화 편향을 가질 수 있다. 다섯째, 전시 연결은 전시 단위의 대리 지표이며 실제 방문 가능성을 보장하지 않는다. 여섯째, 정서 관련 기억은 목적 수준으로 추상화해 저장하고 사용자가 열람·수정·삭제할 수 있게 한다. 실관람객 파일럿은 IRB 심의 또는 면제 확인 뒤 여건이 될 때만 소규모 정성 연구로 수행한다.
+
+\section{결론}
+본 중간 논문은 예술 감상의 다중 맥락 개인화를 위해 맥락 분리형 취향 메모리를 설계하고, 메모리 구조의 효과만 분리해 측정하는 통제 비교 프로토콜을 제시했다. 원안의 멀티모달 검색, 재순위, 그라운딩 필터를 걷어내고, 하나의 질문을 끝까지 검증하는 범위로 줄였다. \fillin{개발 세트 예비 결과 한 문장}. 최종 보고서에서는 H1·H2의 결과를 효과크기, 신뢰구간, 오류 사례와 함께 보고한다.
+
+%==================================================
+\small
+\renewcommand{\refname}{참고문헌}\begin{thebibliography}{99}\setlength{\itemsep}{1pt}
+
+\bibitem{achlioptas2021artemis}
+Panos Achlioptas, Maks Ovsjanikov, Kilichbek Haydarov, Mohamed Elhoseiny, and Leonidas Guibas.
+\newblock ArtEmis: Affective language for visual art.
+\newblock In {\em CVPR}, 2021.
+
+\bibitem{aliannejadi2019asking}
+Mohammad Aliannejadi, Hamed Zamani, Fabio Crestani, and W.~Bruce Croft.
+\newblock Asking clarifying questions in open-domain information-seeking conversations.
+\newblock In {\em SIGIR}, pages 475--484, 2019.
+
+\bibitem{buckley2004incomplete}
+Chris Buckley and Ellen M. Voorhees.
+\newblock Retrieval evaluation with incomplete information.
+\newblock In {\em SIGIR}, pages 25--32, 2004.
+
+\bibitem{chhikara2025mem0}
+Prateek Chhikara, Dev Khant, Saket Aryan, Taranjeet Singh, and Deshraj Yadav.
+\newblock Mem0: Building production-ready AI agents with scalable long-term memory.
+\newblock {\em arXiv preprint arXiv:2504.19413}, 2025.
+
+\bibitem{cormack2009rrf}
+Gordon V. Cormack, Charles L.~A. Clarke, and Stefan Buettcher.
+\newblock Reciprocal rank fusion outperforms Condorcet and individual rank learning methods.
+\newblock In {\em SIGIR}, pages 758--759, 2009.
+
+\bibitem{efron1993bootstrap}
+Bradley Efron and Robert~J. Tibshirani.
+\newblock {\em An Introduction to the Bootstrap}.
+\newblock Chapman \& Hall, 1993.
+
+\bibitem{friedman2023recllm}
+Luke Friedman, Sameer Ahuja, David Allen, Zhenning Tan, Hakim Sidahmed, Changbo Long, Jun Xie, Gabriel Schubiner, Ajay Patel, Harsh Lara, et~al.
+\newblock Leveraging large language models in conversational recommender systems.
+\newblock {\em arXiv preprint arXiv:2305.07961}, 2023.
+
+\bibitem{garcia2018semart}
+Noa Garcia and George Vogiatzis.
+\newblock How to read paintings: Semantic art understanding with multi-modal retrieval.
+\newblock In {\em ECCV Workshops}, 2018.
+
+\bibitem{getty_aat}
+Getty Research Institute.
+\newblock Art \& Architecture Thesaurus (AAT) online.
+\newblock \url{https://www.getty.edu/research/tools/vocabularies/aat/}.
+
+\bibitem{hayes2007alpha}
+Andrew~F. Hayes and Klaus Krippendorff.
+\newblock Answering the call for a standard reliability measure for coding data.
+\newblock {\em Communication Methods and Measures}, 1(1):77--89, 2007.
+
+\bibitem{holm1979}
+Sture Holm.
+\newblock A simple sequentially rejective multiple test procedure.
+\newblock {\em Scandinavian Journal of Statistics}, 6(2):65--70, 1979.
+
+\bibitem{jannach2021survey}
+Dietmar Jannach, Ahtsham Manzoor, Wanling Cai, and Li Chen.
+\newblock A survey on conversational recommender systems.
+\newblock {\em ACM Computing Surveys}, 54(5):1--36, 2021.
+
+\bibitem{jarvelin2002ndcg}
+Kalervo J{\"a}rvelin and Jaana Kek{\"a}l{\"a}inen.
+\newblock Cumulated gain-based evaluation of IR techniques.
+\newblock {\em ACM Transactions on Information Systems}, 20(4):422--446, 2002.
+
+\bibitem{kim2025csi}
+Tongyoung Kim, Jeongeun Lee, Soojin Yoon, Sunghwan Kim, and Dongha Lee.
+\newblock Towards personalized conversational sales agents: Contextual user profiling for strategic action.
+\newblock In {\em Findings of EMNLP}, pages 5131--5154, 2025.
+
+\bibitem{maharana2024locomo}
+Adyasha Maharana, Dong-Ho Lee, Sergey Tulyakov, Mohit Bansal, Francesco Barbieri, and Yuwei Fang.
+\newblock Evaluating very long-term conversational memory of LLM agents.
+\newblock In {\em ACL}, pages 13851--13870, 2024.
+
+\bibitem{openai_deprecations}
+OpenAI.
+\newblock API deprecations: Update to OpenAI's self-serve fine-tuning; legacy GPT model snapshots.
+\newblock \url{https://developers.openai.com/api/docs/deprecations}, accessed 2026-09-23.
+
+\bibitem{openai_gpt4o_ft}
+OpenAI.
+\newblock Fine-tuning now available for GPT-4o.
+\newblock \url{https://openai.com/index/gpt-4o-fine-tuning/}, accessed 2026-09-23.
+
+\bibitem{robertson2009bm25}
+Stephen~E. Robertson and Hugo Zaragoza.
+\newblock The probabilistic relevance framework: BM25 and beyond.
+\newblock {\em Foundations and Trends in Information Retrieval}, 3(4):333--389, 2009.
+
+\bibitem{wu2025longmemeval}
+Di Wu, Hongwei Wang, Wenhao Yu, Yuwei Zhang, Kai-Wei Chang, and Dong Yu.
+\newblock LongMemEval: Benchmarking chat assistants on long-term interactive memory.
+\newblock In {\em ICLR}, 2025.
+
+\bibitem{xiao2026alpsbench}
+Jianfei Xiao, Xiang Yu, Chengbing Wang, Wuqiang Zheng, Xinyu Lin, Kaining Liu, Hongxun Ding, Yang Zhang, Wenjie Wang, Fuli Feng, and Xiangnan He.
+\newblock AlpsBench: An LLM personalization benchmark for real-dialogue memorization and preference alignment.
+\newblock {\em arXiv preprint arXiv:2603.26680}, 2026.
+
+\bibitem{xu2025amem}
+Wujiang Xu, Zujie Liang, Kai Mei, Hang Gao, Juntao Tan, and Yongfeng Zhang.
+\newblock A-MEM: Agentic memory for LLM agents.
+\newblock {\em arXiv preprint arXiv:2502.12110}, 2025.
+
+\bibitem{yao2023react}
+Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao.
+\newblock ReAct: Synergizing reasoning and acting in language models.
+\newblock In {\em ICLR}, 2023.
+
+\end{thebibliography}
+\normalsize
+
+%==================================================
+\clearpage
+\appendix
+\onecolumn\raggedbottom
+\section*{부록 A. 원안 대비 변경 내역}
+2026-09-23 제안서 피드백(범위 과다, 데이터 통합 미착수, 다수 모델 운용의 자원 제약, 지표화 요구, 파인튜닝 에이전트 제안)을 반영한 변경이다. 제외된 모듈은 폐기하지 않고 복귀 조건과 함께 향후 과제로 둔다.
+
+\begin{center}\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+항목 & 원안 (v1, 9월 초) & 본 원고 (v2) & 사유 / 복귀 조건 \\
+\midrule
+제목 & 장기 미학 대화 메모리 + 2층 전시 그라운딩 + 멀티모달 검색 & 맥락 분리형 장기 취향 메모리 & 이미지 인덱스 제외에 따라 ``멀티모달'' 삭제 \\
+확증 가설 & H1–H5 (7개 검정) & H1·H2 (2개 검정) & 검정력 확보, 다중 비교 부담 감소 \\
+비교 조건 & B0–B5, B4a, B4R, B5-F, B5-E0, Oracle & B1, B2, B4 (+선택 B3) & 실행량 약 1/3 \\
+메모리 투입 & 벡터 혼합 $v_t=\norm(\beta q_t+(1-\beta)m_t)$ & 공유 프롬프트의 텍스트 슬롯 $\Phi$ & 같은 채널에서 내용만 다른 조건 → 귀속 명확 \\
+메모리 규칙 & \textsc{Merge}/\textsc{Bridge}/\textsc{Genesis}, 4상태, 경계 대역 LLM 판정 & \textsc{Merge}/\textsc{Genesis}, 3상태 & \textsc{Bridge}는 로그만. 전환 경로 분석 시 복귀 \\
+검색 & $\sT\cdot\sX\cdot\sV\cdot\sL$ 가중 RRF + 크로스 인코더 + 탐색 슬롯 & $\sT\cdot\sL$ RRF & GPU 불필요. $\sX$는 본실험 후 단일 절제로 복귀 \\
+그라운딩 & 신선도 3상태, 정합도 식, B5/B5-F & 스냅샷 1회, 규칙 연결, 확인 필드만 발화 & B5-F 선택 효과 실험은 향후 \\
+설명 평가 & B5-E0 vs B5 (H5) & 기본 기능으로만 구현 & 큐레이터 평가자 2인 확보 시 복귀 \\
+데이터 & MMCA, 문화포털, Met, Harvard, Getty AAT & MMCA, 문화포털 스냅샷, 자체 사전 & 스키마 통합 1회로 종결 \\
+시뮬레이션 & 3유형 × 10변형 × 10세션 (300) & B·C형 × 10–15변형 × 5세션 (100–150), 고정 스크립트 재생 & 라벨 예산 내 수렴, 대화 경로 차이 제거 \\
+LLM & 미정 & OpenAI API, 추출기 SFT vs 프롬프트 & 멘토 제안 반영, 자격·모델 종료 일정 확인 \\
+파일럿 & 20명, IRB & 여건 시 5–10명 정성 파일럿 & IRB 또는 면제 확인 후 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section*{부록 B. 재현성 기록 양식}
+통제 실험의 결과표는 아래 항목이 모두 채워진 경우에만 보고한다. 목표값을 측정값으로 대체하지 않는다.
+
+\begin{center}\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+항목 & 기록 \\
+\midrule
+코퍼스 & MMCA 수집 경로 \fillin{ }, 수집일 \fillin{ }, 작품/해설문 수 \fillin{ }/\fillin{ }, 중복·결측 처리 \fillin{ } \\
+전시 스냅샷 & $\cE_{\mathrm{eval}}$ ID \fillin{ }, 기준일 \fillin{ }, 체크섬 \fillin{ }, 전시 수 \fillin{ } \\
+LLM & 기반 스냅샷 \fillin{ }, 파인튜닝 작업 ID \fillin{ }, 결과 모델 ID \fillin{ }, 에폭 \fillin{ }, 학습/검증 파일 ID \fillin{ } \\
+기타 모델 & 텍스트 임베딩 \fillin{ }, BM25 토크나이저·$k_1$·$b$ \fillin{ }, 시뮬레이터 LLM \fillin{ }, 판정 LLM \fillin{ } \\
+하이퍼파라미터 & $\tau_m,n_{\mathrm{act}},h,\eta,\theta,\rho,\kappa,\tau_g$ 보정값 \fillin{ } 및 보정 로그 위치 \fillin{ } \\
+실행 환경 & OS \fillin{ }, 라이브러리 버전 \fillin{ }, 코드 커밋 \fillin{ }, temperature \fillin{ }, seed \fillin{ }, 프롬프트 해시 \fillin{ } \\
+라벨링 & 평가자 수 \fillin{ }, 개발/평가 분할(사용자 단위) \fillin{ }, 풀 크기 \fillin{ }, 등급 $\alpha$ \fillin{ } \\
+윤리 & 파일럿 수행 여부 \fillin{ }, IRB 심의/면제 \fillin{ }, 보존 기간 \fillin{ } \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section*{부록 C. 결과 보고 양식}
+\begin{center}\small
+\setlength{\tabcolsep}{8pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+조건 & NDCG@10 & CR@10 & $T_{\mathrm{rec}}$ & UCR & 비고 \\
+\midrule
+B1 & & & & & 무기억 \\
+B2 & & & & & 전체 이력 \\
+B3 & & & & & 세션 요약 (선택) \\
+B4 & & & & & 구조화 메모리 \\
+\bottomrule
+\end{tabular}
+\end{center}
+각 칸에는 사용자 평균과 95\% 군집 부트스트랩 신뢰구간을 기록한다. 확증 가설은 다음 형식으로 서술한다: ``H\fillin{ }에서 \fillin{조건 A}→\fillin{조건 B}의 \fillin{주 지표} 짝지은 차이는 \fillin{ } (95\% CI [\fillin{ }, \fillin{ }], $d_z=$\fillin{ })이며, Holm 보정 후 $p=$\fillin{ }이다. 이 결과는 시뮬레이션 조건에서만 관찰되었다.'' 오류 사례는 \texttt{query\_id}, 실패 단계, 기대값, 관찰값, 근본 원인, 수정 내용을 감사 로그와 연결해 기록한다.
+
+\end{document}

@@ -1,0 +1,775 @@
+# [제안서] 장기 미학 대화 메모리와 멀티모달 도슨트 그라운딩 기반의 대화형 아트 큐레이션 시스템 (ARTHÉMIS)
+
+**ARTHÉMIS: Memory-Augmented Conversational Recommender System with Multimodal Grounding for Public Art Institutions & Galleries**
+
+---
+
+## 1. 문제정의 (Problem Definition)
+
+### 1-1. 기존 미술 정보 탐색 및 향유의 구조적 한계: '화이트 큐브의 장벽'과 의미론적 간극(Semantic Gap)
+
+미술관 및 갤러리의 공공 아카이브와 기존 온라인 플랫폼(국립현대미술관 아카이브, Google Arts & Culture, Artsy 등)은 전문 연구자 중심의 메타데이터 체계(작가명, 작품명, 제작 연도, 재료, 사조 기호)를 기반으로 구축되어 있습니다.
+
+* **질의 인지 장벽**: 미술을 향유하고자 하는 대다수의 일반 대중은 "단색화의 촉각적 물질성", "포스트-미니멀리즘의 탈중심적 공간성", "키네틱 아트의 동역학적 메커니즘"과 같은 미술사학적·미학적 전문 어휘를 알지 못합니다. 이용자가 머릿속에 품은 막연한 감정("복잡한 마음을 차분히 정리해 주는 거친 질감의 추상화", "압도적인 공간감을 주는 현대 설치미술")은 기존의 키워드 검색 엔진에서 '검색 실패(Zero-hit)' 또는 '단순 베스트셀러/대표 명화 나열'로 귀결됩니다.
+* **텍스트-시각 매체 간 의미 불일치**: 미술 작품은 텍스트 정보만으로 환원되지 않는 고유의 시각적 양식(Form), 색채(Chroma), 질감(Texture), 전시 공간 내 스케일(Scale)을 갖습니다. 기존 검색 시스템은 텍스트 태그 매칭에 의존하여 시각적·조형적 맥락을 반영한 질의 응답을 지원하지 못합니다.
+
+```
+[기존 검색 패러다임: 단절과 이탈]
+이용자의 감각적·상황적 질의 ("마음이 가라앉는 먹색 계열의 거친 회화")
+       │
+       ▼ (전문 미술사 키워드 부재)
+[기존 메타데이터 DB] ──▶ 불일치 / 무관한 인기 작품 나열 ──▶ 관람 포기 및 정보 탐색 실패
+
+[제안 ARTHÉMIS 패러다임: 대화형 발견과 실천적 연결]
+이용자의 일상 언어 질의 ("마음이 가라앉는 먹색 계열의 거친 회화")
+       │
+       ▼ (CRS & 멀티모달 임베딩)
+[미학 세션 노드] ──▶ [장기 취향 클러스터] ──▶ [하이브리드 검색 & Rerank] ──▶ [전시 API 실시간 검증]
+       │
+       ▼
+정교한 미학적 추천 이유 제시 + "이번 주말 실제로 볼 수 있는 국립현대미술관 기획전 및 전시실 위치" 안내
+
+```
+
+### 1-2. 세션 단절성(Session Volatility)과 미학적 취향 표류(Taste Drift)의 간극
+
+* **휘발성 대화 구조**: 현존하는 대화형 인공지능(Chatbot) 서비스는 각 세션을 독립적인 사건(Stateless Event)으로 취급합니다. 오늘 '이우환의 관계항 시리즈'를 감상하고 조응(Correspondence)의 개념을 탐색한 이용자가, 다음 주에 "조금 더 공간감 있는 금속 설치 작업"을 질문하더라도 이전 대화의 맥락이 완전히 소멸되어 이용자는 본인의 감상 이력과 취향을 매번 처음부터 재설명해야 합니다.
+* **복합적·상황 의존적 예술 페르소나의 미반영**: 한 개인의 예술적 취향은 단일하지 않습니다. '평일 퇴근 후 고요한 사유를 위해 찾는 정적인 회화(Contemplative Persona)'와 '주말에 자녀나 연인과 함께 역동적인 체험을 원하는 미디어/설치 전시(Immersive Persona)'는 상이합니다. 현재 시스템은 이러한 다층적 감상 맥락을 분리하여 저장하고 적응적으로 전환(Switch Adaptation)하는 장기 메모리 구조를 갖추지 못했습니다.
+
+### 1-3. 실행 불가능한 추천(Actionability Void): '미술관 정보 환각'과 관람 단절
+
+아무리 정교한 작품을 추천받더라도, 그 작품이 현재 창고(수장고)에 보관 중이거나 해외 미술관에 있어 실물 관람이 불가능하다면 이용자의 예술 경험은 스크린 속 텍스트에서 단절됩니다.
+
+* 온라인 큐레이션이 실제 물리적 관람 행동으로 전이되려면 "현재 어느 미술관/갤러리에서 전시 중인가?", "휴관일과 도슨트 운영 시간은 언제인가?", "티켓 예매가 가능한가?"라는 사실적(Factual) 정보가 결합되어야 합니다.
+* 기존 LLM 기반 추천은 미술관 전시 일정과 장소에 대한 환각(Hallucination)이 심각하며, 실제 공공 문화 API와의 그라운딩(Grounding) 체계가 결여되어 있습니다.
+
+### 1-4. 본 프로젝트의 가치 및 학술적·사회적 기여도
+
+1. **학술적 가치 (Academic Significance)**:
+단순 텍스트 매칭을 넘어, 다층적 대화 메모리(Aesthetic Session Node + Curatorial Taste Cluster)와 멀티모달 비전-언어 정렬(Vision-Language Alignment) 모델을 결합한 대화형 추천 시스템(Conversational Recommender System, CRS)을 구현합니다. 예술 도메인 특화 장기 메모리 메커니즘이 추천의 적합도(NDCG@10)와 사용자 취향 수렴 속도를 유의미하게 개선함을 통제 실험으로 규명합니다.
+2. **이용자 경험 혁신 (UX Transformation)**:
+전문 지식이 없는 관람객도 일상적 대화를 통해 자신의 미적 취향을 발견하고 구체화할 수 있도록 지원합니다. '왜 이 작품과 전시가 당신에게 의미가 있는지'에 대한 미학적 근거(Curatorial Faithfulness)를 제공하여 작품 선택의 인지적 비용을 획기적으로 낮춥니다.
+3. **공공 문화 자산의 활용성 극대화 (Institutional Impact)**:
+특정 블록버스터 기획전(소위 '인기 명화전')에만 편중되는 관람 쏠림 현상을 완화하고, 국공립 미술관 및 지역 갤러리가 보유한 방대한 수장고 컬렉션과 롱테일(Long-tail) 동시대 작가들의 기획전을 효과적으로 발굴·연결하여 국가 문화 자원의 선순환을 창출합니다.
+
+---
+
+## 2. 배경지식 및 참고자료 (Background Knowledge & Literature Review)
+
+### 2-1. 상용 서비스 및 기존 예술 플랫폼 분석
+
+| 플랫폼/서비스 | 주요 기능 및 특징 | 구조적 한계점 | 본 프로젝트 ARTHÉMIS의 차별화 지점 |
+| --- | --- | --- | --- |
+| **Google Arts & Culture** | 전 세계 미술관 고해상도 아카이브, 비주얼 검색, 사조별 타임라인 탐색 | 정적 카탈로그 열람 중심. 이용자의 정서적 상태나 감상 맥락을 이해하는 대화형 인터페이스 결여 | **동적 대화형 CRS**: 자연어 대화를 통해 사용자의 모호한 심리적·미적 니즈를 구체적 작품으로 도출 |
+| **Artsy (아트시)** | 미술품 경매·갤러리 상업 판매 기반 추천, 작가 간 'The Art Genome Project' 유전자 태깅 | 상업적 구매 이력/작가 연관도 중심 알고리즘. 이용자의 다회차 관람 맥락 보존 불가, 전시 실행 정보 부족 | **장기 기억 계층**: 구매자가 아닌 '향유자' 중심의 세션 노드/취향 클러스터 구축 및 공공 전시 API 연계 |
+| **국립현대미술관 (MMCA) 앱** | 소장품 검색, 현재 전시 목록, 오디오 도슨트 가이드 제공 | 정형 메타데이터(작가/전시명) 기반의 단순 단발성 검색 엔진. 이용자 맞춤형 개인화 추천 전무 | **초개인화 도슨트**: 이용자의 축적된 미학적 선호도와 감상 이력을 반영한 맞춤형 전시 동선 및 해설 제공 |
+| **범용 대화형 AI (ChatGPT 등)** | 폭넓은 미술사적 지식 설명, 전시 및 작가에 대한 일반적 질의응답 | **장소/일정 환각(Hallucination)** 빈번, 최신 전시 상태 미반영, 세션 간 미학 프로필의 구조적 관리 부재 | **API Grounding & Tool Use**: 실시간 공공 전시 API 연동으로 "지금 실제로 관람 가능한" 전시만 검증 제공 |
+
+### 2-2. 핵심 선행 연구 심층 고찰
+
+```
+[선행 연구 계보와 ARTHÉMIS의 융합 구조]
+
+  [대화형 사용자 모델링]                 [동적 에이전틱 메모리]
+   RecLLM (Google, 2023)                 A-MEM (NeurIPS, 2025)
+   CSUSER/CSI (Yonsei, 2025)             Zettelkasten Note 진화
+            │                                      │
+            └──────────────────┬───────────────────┘
+                               │
+                               ▼
+               [ARTHÉMIS 계층형 미학 메모리]
+               - Session Node (미적 경험 스냅샷)
+               - Taste Cluster (추상화된 미학 페르소나)
+                               │
+            ┌──────────────────┴───────────────────┐
+            │                                      │
+            ▼                                      ▼
+ [멀티모달 검색 및 그라운딩]              [도메인 특화 벤치마크 평가]
+  CLIP / DINOv2 Visual Rep.             AlpsBench (Xiao et al., 2026)
+  공공 문화데이터 실시간 API             Profile-Aware Judge (Spotify, 2025)
+  (Bi-Encoder + Cross-Encoder)          (Extraction-Update-Retrieval-Util)
+
+```
+
+#### [1] RecLLM: Conversational Recommender Systems with LLMs (Friedman et al., Google Research, 2023
+
+)
+
+* **핵심 내용**: 대형 언어 모델을 활용하여 사용자와의 자연어 대화 속에서 취향 프로파일을 실시간으로 구축하고 아이템을 추천하는 프레임워크 제안.
+
+
+* **한계**: 프로파일이 단일 대화 세션 내의 텍스트 요약에 의존하므로, 다회차 세션에 걸친 장기적 취향 변화(Long-term Drift) 및 계층적 지식 추상화를 다루지 못함.
+
+
+* **본 연구 적용**: 사용자의 모호한 질의로부터 선호/비선호 조건을 명시적(Explicit)·암묵적(Implicit) 시그널로 분리하여 추출하는 프롬프트 엔지니어링 및 대화 시뮬레이션 기법의 기본 뼈대로 채택합니다.
+
+
+
+#### [2] A-MEM: Agentic Memory for LLM Agents (Xu et al., NeurIPS 2025
+
+)
+
+* **핵심 내용**: 인간의 지식 구성 방식인 제텔카스텐(Zettelkasten) 원리를 모방하여, 새로운 메모리가 들어올 때 기존 기억 노드들과 동적으로 링크를 생성하고 전체 기억 네트워크를 자율적으로 재구성하는 메모리 진화 메커니즘 제안.
+
+
+* **한계**: 범용 에이전트 메모리로 설계되어 예술/미학 도메인의 감각적 양식, 조형 언어, 전시 공간성 등의 특화된 온톨로지를 반영하지 못함.
+
+
+* **본 연구 적용**: 사용자의 세션별 감상 노트를 영구 보존하는 대신, 세션 간 유사도에 따라 'Aesthetic Session Node'를 상위의 'Curatorial Taste Cluster'로 병합(Merge), 분기(Split), 감쇄(Decay)시키는 계층적 메모리 엔진의 핵심 알고리즘으로 확장합니다.
+
+
+
+#### [3] CSUSER & CSI: Contextual User Profiling for Conversational Recommendation (Kim et al., 2025
+
+)
+
+* **핵심 내용**: 대화 매 턴마다 사용자의 세분화된 프로파일을 동적으로 갱신(Update)하고 선호 파악, 탐색, 추천 행동을 전략적으로 선택하는 에이전트 아키텍처 제안.
+
+
+* **본 연구 적용**: 예술 감상 상담 중 이용자의 성향이 불확실할 때 무작정 작품을 추천하지 않고, "어떤 질감이나 공간감을 선호하시나요?"와 같이 취향의 경계를 좁혀가는 선제적 질문(Clarification Question) 트리거 설계에 활용합니다.
+
+#### [4] AlpsBench: Evaluating Long-term Memory in Personal Assistants (Xiao et al., 2026
+
+)
+
+* **핵심 내용**: 개인화 어시스턴트의 장기 메모리 라이프사이클을 취향 추출(Extraction) $\rightarrow$ 메모리 갱신(Update) $\rightarrow$ 메모리 검색(Retrieval) $\rightarrow$ 추천 활용(Utilization)의 4단계로 구조화하여 엄밀하게 벤치마킹하는 프레임워크 제시.
+
+
+* **본 연구 적용**: 본 시스템의 미학 메모리 성능을 단순 추천 적중률 하나로 뭉뚱그리지 않고, 메모리의 생명주기 단계별 정량 지표(F1, Update Accuracy, Recall@K, NDCG@K)를 엄밀히 분리 측정하는 평가 기준선으로 전면 도입합니다.
+
+
+
+#### [5] 멀티모달 표현 학습: DINOv2 & Art-CLIP
+
+* **배경**: 회화, 조각, 설치미술의 양식(Style), 붓터치(Stroke), 색조(Palette), 조형 구성(Composition)을 포착하기 위해 비지도 시각 백본(DINOv2)과 텍스트-이미지 정렬 모델(CLIP)을 융합합니다.
+* **본 연구 적용**: 작품 텍스트 설명(Curatorial Essay)과 고해상도 작품 이미지를 결합한 하이브리드 멀티모달 임베딩(Multimodal Aesthetic Representation)을 구축하여 텍스트 의미 검색과 시각 유사도 검색을 동시에 달성합니다.
+
+---
+
+## 3. 활용 데이터 (Data Engineering & Governance)
+
+### 3-1. 데이터 자산 목록 및 확보 방안
+
+| 데이터 자산명 | 출처/기관 | 데이터 규격 및 규모 | 취득/연동 방식 | 용도 및 라이선스 |
+| --- | --- | --- | --- | --- |
+| **공공문화정보(전시/행사) Open API** | 문화포털 (문화데이터광장) | 전국 국공립/사립 미술관 전시 일정, 장소, 티켓 정보 (실시간 갱신) | REST API (API 키 발급 완료) | 실시간 관람 가능 여부 및 전시 운영 정보 Tool Grounding (공공누리 제1유형) |
+| **국립현대미술관 소장품 아카이브** | 국립현대미술관 (MMCA) 공공데이터 | 근현대 회화, 조각, 뉴미디어 등 10,000+건 (메타데이터, 해설문, 이미지 URL) | 공공데이터포털 Open API & CSV 일괄 수령 | 추천 대상 핵심 작품 DB 구축 (학술·비영리 연구용) |
+| **K-Artmarket 미술시장 DB** | (재)예술경영지원센터 | 주요 작가 프로필, 사조, 전시 이력 50,000+건 | 연구용 오픈 데이터셋 다운로드 | 작가 간 관계 그래프(Author-Movement Linkage) 구축 |
+| **The Met / Harvard Art Museums API** | The Metropolitan Museum of Art / Harvard | 글로벌 명화 및 현대미술 50,000+건 (고해상도 이미지, 큐레이토리얼 텍스트) | Open Access REST API (무제한 호출) | 글로벌 비교군 및 멀티모달 임베딩 사전학습 보강 (CC0) |
+| **Getty AAT (Art & Architecture Thesaurus)** | Getty Research Institute | 미술사, 미학, 조형 기법 계층 온톨로지 (RDF/JSON-LD) | 공식 SPARQL Endpoint 쿼리 | 사용자 발화-전문 미학 용어 간 시맨틱 매핑 어휘집 구축 |
+| **합성 페르소나 멀티턴 대화 세트** | 자체 구축 (GPT-4o / Claude 3.5 Sonnet) | 3개 페르소나 $\times$ 6개 시드 $\times$ 10회 세션 (총 180 세션, 1,800+ 턴) | LLM 생성 후 큐레이터 2인 정밀 Human Audit | 장기 메모리 수렴 및 갱신 평가용 Gold Standard 구축 |
+
+### 3-2. 데이터 정제 및 멀티모달 임베딩 파이프라인
+
+1. **텍스트 정제 (Curatorial Text Normalization)**:
+* 미술관 해설 텍스트의 불필요한 특수문자, HTML 태그, 전시 홍보성 상투어구("선착순 마감", "현장 결제")를 제거합니다.
+* 작품 크기($cm$), 제작 기법(캔버스에 유채, 인터랙티브 인스톨레이션 등), 연도 정보를 정형 메타데이터 필드로 파싱합니다.
+
+
+2. **멀티모달 임베딩 생성 (Multimodal Embedding Fusion)**:
+* **텍스트 임베딩 ($E_{text}$)**: 정제된 큐레이토리얼 해설과 Getty AAT 시맨틱 태그를 결합하여 `BGE-m3` 및 `Ko-E5-large`를 통해 1024차원 벡터로 인코딩합니다.
+* **비주얼 임베딩 ($E_{vis}$)**: 고해상도 작품 이미지를 중앙 크롭 및 패치 단위로 분할하여 `DINOv2-large`와 `Art-CLIP` 백본에 통과시켜 1024차원 시각 양식 벡터를 추출합니다.
+* **최종 복합 임베딩 ($E_{art}$)**: 투영 레이어(Projection Layer)를 거쳐 $E_{art} = \alpha E_{text} + (1-\alpha) E_{vis}$ ($\alpha=0.6$ 기본 세팅, 텍스트의 개념적 의미와 이미지의 조형성을 동시 보존) 구조의 하이브리드 벡터를 생성하고 Qdrant 벡터 DB에 인덱싱합니다.
+
+
+
+```
+[데이터 정제 및 하이브리드 멀티모달 인덱싱 파이프라인]
+
+[공공 API / 국립미술관 DB] ──▶ 텍스트 정규화 ──▶ BGE-m3 / Ko-E5 ──▶ E_text (1024d) ┐
+                                                                                    ├─▶ 복합 벡터 투영 (E_art) ──▶ [Qdrant Vector DB]
+[작품 고해상도 이미지 URL] ──▶ 이미지 전처리 ──▶ DINOv2/Art-CLIP ──▶ E_vis (1024d)  ┘
+
+```
+
+### 3-3. 도서관 및 전시 정보 API와의 차이점 및 실제 연동 스키마
+
+원문의 '도서관 정보나루(Data4Library)' 구조를 문화예술 도메인에 맞게 완벽히 재구성하여, 공공문화정보 전시 API와 국립현대미술관 소장품 아카이브를 결합한 스키마를 정의합니다.
+
+```json
+{
+  "artwork_id": "MMCA-2024-PA-0482",
+  "title_ko": "무제 (산울림)",
+  "title_en": "Untitled (Echo of Mountain)",
+  "artist": {
+    "name": "김환기",
+    "birth_death": "1913-1974",
+    "movement": ["한국 추상미술", "전면점화"],
+    "aat_style_id": "300021502"
+  },
+  "creation_year": 1973,
+  "medium": "코튼에 유채 (Oil on cotton)",
+  "dimensions": "264 x 213 cm",
+  "curatorial_description": "뉴욕 시기 말기에 제작된 전면점화로, 무수한 푸른색 점들이 사방으로 번져나가며 거대한 공간적 공명과 시각적 운율을 형성한다...",
+  "visual_features": {
+    "dominant_colors": ["#1A365D", "#2B6CB0", "#718096"],
+    "texture_type": "absorbent_cotton_stain",
+    "spatial_feeling": "cosmic_expansion"
+  },
+  "exhibition_grounding": {
+    "is_currently_on_view": true,
+    "venue_name": "국립현대미술관 서울",
+    "gallery_location": "2전시실 (한국근현대미술 특설전)",
+    "exhibition_title": "한국 현대미술의 서정적 추상",
+    "start_date": "2026-03-01",
+    "end_date": "2026-10-31",
+    "operating_hours": "10:00 - 18:00 (수, 토 21:00 야간개장)",
+    "admission_fee": "무료 (특별기획전 별도 2,000원)",
+    "ticketing_url": "https://www.mmca.go.kr/exhibitions/exhibitionsDetail.do?exhId=...",
+    "checked_at": "2026-09-16T15:30:00Z",
+    "api_freshness_status": "FRESH"
+  }
+}
+
+```
+
+### 3-4. 엄밀한 통제 평가를 위한 페르소나 시뮬레이션 설계
+
+실제 미술관 이용자 로그의 프라이버시 보호 한계를 극복하고(Zerhoudi & Granitzer, 2026), 장기 메모리의 증분 효과를 과학적으로 입증하기 위해 국립현대미술관 관람객 통계와 문화향수실태조사를 반영한 3대 대표 페르소나를 구축합니다.
+
+| 페르소나 식별자 | 대상 및 인구통계 | 초기 상태 및 심리적 배경 | 관심사 탐색 여정 및 검증 목적 | 핵심 검증 포인트 (Test Gate) |
+| --- | --- | --- | --- | --- |
+| Persona A<br>
+
+<br>(정서적 발견형) | 29세 IT 디자이너<br>
+
+<br>(이지우) | 번아웃 상태, "머리를 비우고 차분히 침잠할 수 있는 고요한 시각 예술"을 원하나 미술사적 사조 어휘 전무 | 막연한 감정 표현으로 시작 $\rightarrow$ 5턴 이내에 '미니멀리즘/단색조 회화'로 취향 수렴 $\rightarrow$ 실제 주말 관람 가능한 고요한 전시 추천 요구 | **세션 내 수렴성 & 인지비용 절감**: 모호한 발화에서 5회 대화 이내 골드 프로필 도달 여부 및 설명 납득도 |
+| Persona B<br>
+
+<br>(다중 맥락 분리형) | 41세 큐레이터 지망 학부모<br>
+
+<br>(강성민) | 본인의 학술적 미학 연구(포스트모더니즘 미디어아트)와 주말 초등생 자녀를 위한 체험형 인터랙티브 전시 요구 공존 | 본인 연구용 질문과 가족 나들이 질문을 교차 질의할 때, 시스템이 오염(Contamination) 없이 독립된 두 프로필로 분리 라우팅하는지 시험 | **다중 프로필 라우팅 정확도**: 1인 다중 페르소나 간 취향 혼선율(Contamination Rate $\le 0.05$) 통제 |
+| Persona C<br>
+
+<br>(취향 전환/표류형) | 22세 미술대학 학부생<br>
+
+<br>(윤서연) | 구상 회화(Impressionism, 초상화)를 주로 탐색하다가 4세션 이후 급격히 '생성 AI 기반 키네틱/미디어 설치'로 관심사 전향 | 이전 취향(구상 회화)을 무조건 삭제하지 않고 보존하면서, 3세션 이내에 새로운 주제(미디어아트)의 NDCG를 회복하는지 추적 | **관심사 전향 적응력 (Taste Drift)**: 구 취향 억제(Suppression) 및 신규 주제 적응 속도(Switch Recovery) |
+
+---
+
+## 4. 문제 해결 방법 (System Architecture & Methodology)
+
+### 4-1. 엔드투엔드 시스템 아키텍처
+
+```
+[ARTHÉMIS 전체 시스템 파이프라인]
+
+                 [사용자 다회차 발화 입력 (User Utterance)]
+                                     │
+                                     ▼
+      ┌─────────────────────────────────────────────────────────────┐
+      │  1. 미학 의도 및 감성 시그널 추출기 (Curatorial Extractor)     │
+      │     - Explicit: 선호 작가, 매체, 관람 가능 지역/시간대      │
+      │     - Implicit: 정서 상태(피로, 영감), 미학적 난이도 수용성 │
+      └──────────────────────────────┬──────────────────────────────┘
+                                     │
+                                     ▼
+      ┌─────────────────────────────────────────────────────────────┐
+      │  2. 계층형 미학 메모리 엔진 (Hierarchical Aesthetic Memory)   │
+      │     ┌─────────────────────────────────────────────────┐     │
+      │     │ [Session Node] (세션 스냅샷: Vector + Evidence) │     │
+      │     └────────────────────────┬────────────────────────┘     │
+      │                              ▼                              │
+      │     ┌─────────────────────────────────────────────────┐     │
+      │     │ [Curatorial Taste Cluster] (진화형 장기 취향군) │     │
+      │     │  - Similarity > 0.78  ──▶ 기존 클러스터 편입    │     │
+      │     │  - 0.50 ~ 0.78        ──▶ Overlap 관계 형성     │     │
+      │     │  - Similarity < 0.50  ──▶ 신규 클러스터 창발    │     │
+      │     └─────────────────────────────────────────────────┘     │
+      └──────────────────────────────┬──────────────────────────────┘
+                                     │
+                                     ▼ (통합 Active Profile Embedding 도출)
+      ┌─────────────────────────────────────────────────────────────┐
+      │  3. 멀티모달 2단계 하이브리드 검색 & 재순위화 엔진           │
+      │     ┌─────────────────────────────────────────────────┐     │
+      │     │ 1차: Hybrid Dense + BM25 Retrieval (Top-50 후보)│     │
+      │     └────────────────────────┬────────────────────────┘     │
+      │                              ▼                              │
+      │     ┌─────────────────────────────────────────────────┐     │
+      │     │ 2차: Cross-Encoder & MLLM Reranker (Top-10 압축)│     │
+      │     └─────────────────────────────────────────────────┘     │
+      └──────────────────────────────┬──────────────────────────────┘
+                                     │
+                                     ▼
+      ┌─────────────────────────────────────────────────────────────┐
+      │  4. 공공 문화 전시 API 그라운딩 도구 (Tool Execution Engine) │
+      │     - /api/exhibitionStatus : 현재 전시 중 여부 실시간 확인  │
+      │     - /api/galleryLocation  : 관람 시간, 전시실, 티켓팅 확인 │
+      │     - Freshness Verification: stale 캐시 감지 및 대체 라우팅 │
+      └──────────────────────────────┬──────────────────────────────┘
+                                     │
+                                     ▼
+      ┌─────────────────────────────────────────────────────────────┐
+      │  5. 근거 기반 미학 도슨트 생성기 (Grounded Explanation Gen) │
+      │     - "왜 이 작품인가": 사용자의 장기 취향 클러스터와 정합  │
+      │     - "지금 볼 수 있는 곳": 미술관 위치 및 도슨트 시간 안내 │
+      └─────────────────────────────────────────────────────────────┘
+
+```
+
+### 4-2. 다층 미학 메모리 시스템 설계 (Aesthetic Session Node & Curatorial Taste Cluster)
+
+원문에서 제안된 단편적인 메모리 발상을 A-MEM(Xu et al., 2025)의 제텔카스텐 원리와 결합하여, 모든 기억이 수학적으로 추적 가능하고 근거를 갖도록 정밀 설계합니다.
+
+```
+[계층형 미학 메모리의 상호작용 구조]
+
+ [Session Node (t-2)]      [Session Node (t-1)]      [신규 Session Node (t)]
+ (차분한 수묵화 탐색)      (물질성 높은 유채화)     (거친 질감의 부조/조각)
+          │                         │                         │
+          └────────────────┬────────┘                         │
+                           ▼                                  ▼
+             [Curatorial Taste Cluster 1]         [Cosine Sim 계산]
+             "촉각적 물질성 및 명상적 추상" ◀────── Sim(t, C1) = 0.82 (>= 0.78)
+             - Weight: 지수 감쇄 적용             ==> Cluster 1 편입 및
+             - Status: Active                     가중치/기술문 자율 갱신
+
+```
+
+#### [1] Aesthetic Session Node 구조 명세
+
+세션 종료 또는 핵심 선호 발견 시 LLM이 생성하는 정밀 구조화 데이터 노드입니다.
+
+```python
+aesthetic_session_node = {
+    "node_id": "sess_art_2026_0916_01",
+    "timestamp": "2026-09-16T18:30:00Z",
+    "turn_count": 6,
+    "user_persona_id": "persona_A",
+    "raw_summary": "이용자는 일상적 업무 스트레스로 인해 시각적 자극이 적고 명상적인 느낌을 주는 한국 현대 단색조 회화와 거친 질감의 회화를 선호함.",
+    "aesthetic_intent": {
+        "primary_motive": "contemplation_and_stress_relief",
+        "stylistic_preference": ["monochrome", "textural_materiality", "tactile"],
+        "avoidance": ["pop_art", "hyper_stimulating_digital", "crowded_blockbuster"],
+        "preferred_medium": ["oil_on_canvas", "ink_on_korean_paper", "relief_sculpture"],
+        "explicit_mentions": ["단색화", "마음이 차분해지는", "질감이 살아있는"],
+        "implicit_inferences": ["복잡한 도상학적 해석보다 조형적 침묵 선호"]
+    },
+    "visit_context": {
+        "target_day": "saturday_morning",
+        "preferred_region": "seoul_jongno", # 삼청동/소격동 미술관 밀집 지역
+        "viewing_duration": "medium (1-2 hours)"
+    },
+    "evidence_span": {
+        "source_turn": [2, 4],
+        "exact_quote": "요즘 너무 머리가 복잡해서... 색채가 요란하지 않고 캔버스 표면의 물질감이 묵직하게 느껴지는 작품 앞에 가만히 있고 싶어요."
+    },
+    "embedding_vector": [...], # 1024차원 Dense Vector
+    "assigned_cluster_id": "cluster_art_003",
+    "assignment_confidence": 0.84,
+    "status": "active" # active | tentative | stale | suppressed
+}
+
+```
+
+#### [2] Curatorial Taste Cluster 및 동적 클러스터링 알고리즘
+
+* **클러스터 속성**: 여러 세션에서 반복 관찰된 미적 성향을 통합한 메타 노드입니다.
+* **가중치 산식**: 세션의 최신성(Recency)과 사용자의 명시적 피드백(만족도 점수 $S \in [0, 1]$)을 반영하여 지수 감쇄 가중치를 부여합니다.
+
+$$W(sess_i) = \exp(-\lambda \cdot \Delta t) \times (0.5 + 0.5 \cdot S_i)$$
+
+
+
+(여기서 $\lambda$는 감쇄 계수, $\Delta t$는 현재 시점으로부터 경과된 일수)
+* **동적 편입 및 창발 임계값 알고리즘**:
+새로운 세션 노드 $S_{new}$가 생성되면, 등록된 모든 활성 클러스터 ${C_j}$와의 코사인 유사도 $Sim(S_{new}, C_j)$를 계산합니다.
+1. **편입 (Merge, $Sim \ge \tau_{merge} = 0.78$)**:
+가장 유사한 기존 클러스터 $C_{best}$에 귀속시키고, 멤버 목록 추가, 가중치 재계산, 클러스터 기술문(LLM Contextual Synthesis)을 업데이트합니다.
+2. **약한 연결 (Overlap/Bridge, $\tau_{split} = 0.50 \le Sim < 0.78$)**:
+기존 클러스터 간의 전이 상태로 표시하고, 독서/감상 취향의 경계가 확장되는 '과도기적 노드'로 연결 관계(`cluster_relations`)만 기록합니다.
+3. **신규 창발 (Split/Genesis, $Sim < \tau_{split} = 0.50$)**:
+기존 취향 범주로 설명할 수 없는 새로운 미적 관심사(예: 고전 회화 취향에서 미디어 설치로 전향)로 판정하고 신규 클러스터를 생성하며 초기 확신도(Confidence) 0.35를 부여합니다 (이후 세션에서 2회 이상 연속 확인 시 정규화).
+
+
+
+### 4-3. 멀티모달 하이브리드 검색 및 맥락 재순위화 (Retrieval & Reranking)
+
+* **1단계: 하이브리드 후보군 추출 (Hybrid Retrieval, Top-50)**
+사용자의 현재 질의 임베딩 $Q_t$와 활성 미학 취향 클러스터 임베딩 $C_{active}$의 결합 벡터 $V_{user} = \beta Q_t + (1-\beta) C_{active}$ ($\beta=0.7$)를 구성합니다.
+* **Dense Search**: Qdrant에 저장된 작품의 멀티모달 임베딩 $E_{art}$와 코사인 유사도 검색 ($Top\text{-}50$).
+* **Lexical BM25**: 발화 내 명시된 고유명사(작가명, 미술관명, 특정 재료) 매칭 점수 산출.
+* **Reciprocal Rank Fusion (RRF)**: 두 랭킹 리스트를 융합하여 상위 50개 1차 후보군 선정.
+
+
+* **2단계: 크로스인코더 기반 심층 문맥 재순위화 (Cross-Encoder Reranking, Top-10)**
+상위 50개 후보 작품을 대상으로, 사용자의 상세 제약조건(관람 희망 시간대, 기피 조건, 미학적 텍스처 선호)과 작품의 전체 큐레이토리얼 해설문을 쌍(Pair)으로 구성하여 교차 인코더(`BGE-Reranker-large`)에 주입합니다.
+
+$$Score_{final} = \sigma \left( \text{CrossEncoder}([\text{User Context}; \text{Artwork Full Metadata}]) \right)$$
+
+
+
+최종 상위 10개 작품을 도출합니다.
+
+### 4-4. 공공 전시 Open API Tool Execution & Grounding Engine
+
+추천 순위 상위 10개 작품에 대해 실제 관람 가능 여부를 검증하는 에이전트 도구(Tool)를 즉시 실행합니다.
+
+1. **API 호출 파이프라인**:
+* `artwork_id` 및 `artist_id`를 기반으로 문화포털 전시정보 API 및 국립현대미술관 소장품 연동 API를 호출합니다.
+* 질의 파라미터: `artistName`, `artworkTitle`, `currentDate=20260916`.
+
+
+2. **Freshness-Aware Fallback 정책**:
+* API 응답의 `is_on_view == "Y"`인 경우: **[현재 전시 중 - 관람 가능]** 뱃지와 함께 구체적 전시실 번호, 관람 요금, 티켓 예매 링크를 주입합니다.
+* API 응답이 `is_on_view == "N"` (수장고 보관)인 경우: "현재 원작은 국립현대미술관 수장고에 보관 중입니다. 대신 같은 기법과 조형 언어를 공유하며 현재 삼청동 OO갤러리에서 전시 중인 동시대 작가 AAA의 기획전을 추천합니다"로 대체 라우팅(Alternative Routing)을 실행합니다.
+* API 호출 타임아웃($>1,500ms$) 발생 시: 캐시된 직전 스냅샷을 사용하되 `[확인 필요: 3일 전 기준 전시 정보]` 안내 문구를 강제 출력하여 정보 환각을 원천 차단합니다.
+
+
+
+### 4-5. 활용 코드베이스 및 커스터마이징 전략
+
+* A-MEM (Agentic Memory GitHub Repository):
+
+
+* *활용*: 노드 간 그래프 연결 생성기 및 자율 메모리 진화 파이프라인 구조를 차용합니다.
+
+
+* *수정*: 예술 도메인의 Getty AAT 온톨로지 기반 의미 거리 측정기를 추가하고, 텍스트 전용 노드 구조를 '시각-텍스트 복합 멀티모달 노드'로 전면 확장합니다.
+
+
+* CSI / CSUSER (Yonsei Univ. GitHub Repository):
+
+
+* *활용*: 대화 턴 단위의 상태 추적(State Tracking) 및 의사결정 정책 프롬프트를 차용합니다.
+
+
+* *수정*: 이커머스 상품 판매 유도(Sales Strategy) 로직을 전면 제거하고, 관람객의 미학적 사유를 심화시키는 '소크라테스식 큐레이토리얼 질문(Curatorial Probing)' 생성기로 프롬프트 엔진을 재구축합니다.
+
+
+* **RAGatouille / FlagEmbedding**:
+* *활용*: ColBERT 및 BGE-Reranker 파이프라인을 도입하여 대규모 큐레이토리얼 에세이 아카이브 검색의 정밀도를 확보합니다.
+
+
+
+---
+
+## 5. 평가 방법 (Evaluation Protocols & Metrics)
+
+단일한 LLM 점수 매기기 방식을 배제하고, **가설 설정 $\rightarrow$ 통제 비교군 $\rightarrow$ 다층 정량 지표 $\rightarrow$ 인간 정밀 검수**로 이어지는 완벽한 연구 방법론을 구축합니다.
+
+### 5-1. 핵심 연구 질문(RQ) 및 가설(H) 대응 체계
+
+| 연구 질문 (Research Question) | 검증 가설 (Hypothesis) | 독립변수 (IV) | 종속변수 (DV) | 통계적 검증 방법 |
+| --- | --- | --- | --- | --- |
+| **RQ1**: 장기 미학 메모리가 단발성 세션 모델 대비 개인화 추천 품질을 높이는가?
+
+ | **H1**: 계층 메모리를 활성화한 모델이 무메모리 대비 유의미하게 높은 추천 정밀도를 달성할 것이다.
+
+ | 메모리 유무 (On / Off)
+
+ | NDCG@10, Recall@20
+
+ | Paired Bootstrap Test (95% CI > 0)
+
+ |
+| **RQ2**: 취향 클러스터 구조가 단순 전체 대화 누적(Concat) 대비 취향 표류 적응력이 우수한가?
+
+ | **H2**: 클러스터 구조가 관심사 전환 시 구 취향 오염을 방지하고 새 주제 적응 속도를 단축시킬 것이다.
+
+ | 메모리 아키텍처 (Full-Concat vs. Single-Summary vs. Proposed Cluster)
+
+ | Switch Adaptation Turns, Old-topic Contamination Rate
+
+ | Repeated Measures ANOVA across turns |
+| **RQ3**: 멀티모달 2단계 검색이 1단계 단일 검색 대비 상위 추천 순위의 질을 높이는가?
+
+ | **H3**: Bi-Encoder 이후 Cross-Encoder Reranker 적용 시 상위 랭킹의 미학적 일치도가 급상승할 것이다.
+
+ | 검색 파이프라인 (Retrieval-Only vs. Retrieval+Reranker)
+
+ | NDCG@5, MRR, HitRate@3
+
+ | Paired Permutation Test ($p < 0.01$)
+
+ |
+| **RQ4**: 공공 전시 API 연동이 추천의 실질적 관람 실행 가능성을 보장하는가?
+
+ | **H4**: 실시간 Tool Grounding이 전시 일정 환각률을 0%에 수렴시키고 관람 가능 정밀도를 높일 것이다. | API Grounding 유무 (On / Off)
+
+ | Availability Precision@K, Factual Grounding Accuracy
+
+ | Exact Match Test against Public API Truth Set
+
+ |
+| **RQ5**: 근거 기반 해설이 사용자의 추천 수용도와 선택 신뢰를 향상시키는가?
+
+ | **H5**: 세션 노드의 근거 텍스트를 인용한 해설이 단순 생성 해설 대비 높은 신뢰도를 획득할 것이다.
+
+ | 해설 모드 (Unconstrained vs. Field-grounded Evidence) | Faithfulness Score, User Acceptability | Blind Curatorial Audit (2인 합의 평가)
+
+ |
+
+### 5-2. 통제 실험을 위한 Baseline 비교군 설계
+
+| 비교군 ID | 모델 구성 및 파이프라인
+
+ | 도입 목적 및 역할
+
+ |
+| --- | --- | --- |
+| **B0** | Lexical BM25 (메타데이터 텍스트 키워드 매칭, No Memory)
+
+ | 전통적 미술관 웹사이트 검색에 대응하는 최소 기준선
+
+ |
+| **B1** | Multimodal Dense Retrieval (현재 세션 발화만 입력, No Memory)
+
+ | 멀티모달 임베딩 검색의 순수 기여도 측정
+
+ |
+| **B2** | Dense Retrieval + Full Conversation History Concat (장기 메모리 미구조화)
+
+ | 단순 대화 누적이 야기하는 컨텍스트 윈도우 노이즈 및 간섭 측정
+
+ |
+| **B3** | Structured Session Memory (단일 세션 요약 노드만 유지, 클러스터링 부재)
+
+ | 세션 노드 요약화의 효과와 상위 클러스터 부재 시 한계 측정
+
+ |
+| **B4** | Hierarchical Memory (Session + Taste Cluster), Retrieval Only (재순위기 부재)
+
+ | 2단계 Reranker를 제외한 순수 계층 메모리의 검색 효과 측정
+
+ |
+| **B5 (Proposed)** | **Full System: Hierarchical Memory + Reranker + Real-time Tool Grounding**<br> | 본 제안 시스템의 총체적 성능 검증
+
+ |
+| **Oracle** | Gold Profile + Gold Curatorial Relevant Item Set (인간 전문가 설계 상한선)
+
+ | 데이터셋과 모델이 도달할 수 있는 이론적 성능 상한(Skyline) 확인
+
+ |
+
+### 5-3. 정량적 평가 (Quantitative Evaluation)
+
+AlpsBench(Xiao et al., 2026) 및 IBM IR/RAG 평가 체계를 통합하여 6대 평가 영역의 정량 지표를 산출합니다.
+
+```
+[다층 정량 평가 매트릭스 흐름]
+
+  [1. 메모리 추출/갱신] ──▶ Precision, Recall, Macro-F1 (Keep/Add/Revise/Suppress)
+           │
+           ▼
+  [2. 후보 검색/순위]   ──▶ Recall@50 ──▶ (Cross-Encoder) ──▶ NDCG@10, MRR
+           │
+           ▼
+  [3. 실시간 API 실행]  ──▶ Tool Exact Match, Availability Precision@10 (전시 여부)
+           │
+           ▼
+  [4. 생성 및 운영성]   ──▶ Curatorial Faithfulness (0-3 Graded), p95 Latency (< 1.8s)
+
+```
+
+#### [1] 메모리 생명주기 지표 (Memory Lifecycle Metrics - AlpsBench 기반
+
+)
+
+* **Extraction Macro-F1**: 정답 미학 프로필(Gold Profile) 대비 모델이 추출한 미적 속성(사조, 조형 요소, 감상 목적, 기피 조건)의 정밀도 및 재현율. 명시적 선호와 암묵적 추론을 분리 집계.
+
+
+* **Update Action Accuracy**: 새 대화 유입 시 취향 상태 전이(Keep, Add, Revise, Suppress)에 대한 4-class 분류 정확도 (Target: $\ge 0.88$).
+
+
+* **Taste Drift Adaptation (관심사 전환 속도)**: 페르소나 C 시나리오에서 관심사 전향(Turn $t_{switch}$) 이후, 구 취향의 오염도($Contamination Rate = \frac{\vert{}Rec_{old}\vert{}}{K}$)가 $0.1$ 이하로 떨어지고 신규 취향의 $Recall@10$이 $0.80$을 회복하는 데 소요되는 대화 턴 수 ($T_{recover} \le 2$ 턴 달성 여부).
+
+
+
+#### [2] 검색 및 추천 랭킹 지표 (Search & Ranking Metrics)
+
+* **Recall@50 (후보군 추출력)**: 1차 검색 단계에서 Gold Relevant 작품군이 Top-50 내에 얼마나 포함되었는가.
+
+
+* **NDCG@10 (정규화 할인 누적 이득)**: 미학 전문가가 부여한 단계별 적합도 점수($g_i \in \{0, 1, 2, 3\}$; 0: 무관, 1: 단순 사조 일치, 2: 조형/감성 일치, 3: 맥락/실행 완벽 일치)를 기준으로 상위 10개 추천작의 랭킹 품질 산출.
+
+
+
+$$DCG@10 = \sum_{i=1}^{10} \frac{2^{g_i} - 1}{\log_2(i + 1)}, \quad NDCG@10 = \frac{DCG@10}{IDCG@10}$$
+
+
+* **MRR (Mean Reciprocal Rank)**: 최상위 적합 작품이 몇 번째 순위로 등장하는지 역수 평균 측정.
+
+
+
+#### [3] 실행 가능성 및 API 사실성 지표 (Actionability & Grounding Metrics)
+
+* **Tool Call Exact Match (API 정확도)**: 사용자 질의 의도에 부합하는 올바른 공공 전시 API 엔드포인트와 인자(Argument)를 호출했는가.
+
+
+* **Availability Precision@K (실제 관람 가능률)**: 시스템이 추천한 Top-K 작품/전시 중, 실제로 현재 오프라인 관람이 가능한(전시 진행 중 및 개방 상태) 비율.
+
+
+
+$$Availability@K = \frac{1}{K} \sum_{i=1}^K \mathbb{I}(\text{is\_currently\_on\_view}(item_i) == \text{True})$$
+
+
+* **Freshness Rate**: 조회 시점 기준 24시간 이내의 캐시/라이브 데이터를 바탕으로 한 응답 비율 (Target: $1.00$).
+
+
+
+#### [4] 시스템 운영성 지표 (Operational Metrics)
+
+* **Latency Profile**: 전체 파이프라인(메모리 검색 + 하이브리드 검색 + Rerank + API 호출 + 생성)의 $p50 \le 1.2\text{초}$, $p95 \le 1.8\text{초}$ 보장.
+
+
+* **Cost Efficiency**: 1 세션(6턴 대화)당 평균 LLM 토큰 소모량 및 API 호출 비용 산출 ($<\$0.02/\text{session}$).
+
+### 5-4. 정성적 평가 (Qualitative Evaluation & Curatorial Audit)
+
+```
+[인간-LLM 하이브리드 정성 평가 루브릭 프로토콜]
+
+[시스템 큐레이션 결과물 Top-10]
+             │
+             ├──▶ [LLM-as-a-Judge (GPT-4o)] : Position Randomization & Blind Pairwise Rating
+             │
+             └──▶ [전문 큐레이터 2인 Audit] : 5-Point Likert Scale (Kappa >= 0.75 검증)
+                                 │
+                                 ▼
+                     [4차원 종합 정성 점수판 도출]
+                     1. Curatorial Faithfulness (미학적 사실성)
+                     2. Narrative Persuasiveness (추천 사유 설득력)
+                     3. Spatial Accessibility (전시 접근성 타당성)
+                     4. Serendipitous Discovery (롱테일 참신성)
+
+```
+
+1. **전문 큐레이터 정밀 검수 (Blind Human Curatorial Audit)**:
+* 미술관 학예연구사 및 미술사 석·박사 2인으로 구성된 평가단이 무작위 추출된 100건의 세션 응답을 대상으로 블라인드 평가 수행.
+
+
+* 평가 항목 (5점 척도 리커트 스케일):
+1. *미학적 충실성 (Aesthetic Faithfulness)*: 추천 이유가 작가의 실제 조형 언어 및 미술사적 맥락에 정확히 부합하는가.
+
+
+2. *내러티브 설득력 (Narrative Persuasiveness)*: 이용자의 상황과 감정 상태를 작품의 조형적 특성과 자연스럽게 매개하였는가.
+
+
+3. *전시 접근성 타당성 (Spatial Accessibility)*: 안내된 전시 장소, 동선, 관람 조건이 실제 관람자 관점에서 실현 가능한가.
+4. *참신한 발견 (Serendipity & Novelty)*: 교과서적 대표작에만 안주하지 않고 사용자의 취향에 부합하는 롱테일 작가를 발굴하였는가.
+
+
+
+
+* 평가 신뢰도 확보: 평가자 간 일치도(Cohen's Kappa $\kappa \ge 0.75$)를 사전 검증하여 주관적 편향을 배제합니다.
+
+
+
+
+2. Profile-Aware LLM-as-a-Judge 평가 프로토콜 (Fabbri et al., Spotify 2025 기반):
+
+
+* 모델 편향(Position Bias, Verbosity Bias)을 방지하기 위해 추천 리스트의 순서를 무작위 셔플(Position Randomization)하고, 정량화된 세부 루브릭 프롬프트를 주입하여 다면 평가를 수행합니다.
+
+
+* 생성된 추천문과 원본 메타데이터 간의 문맥 일치도를 검증하여 미학적 환각(Hallucination) 감점제를 적용합니다.
+
+
+
+
+
+### 5-5. 마일스톤 및 리스크 관리 계획 (6-Week Exit Criteria)
+
+원문의 6주 일정을 실제 연구 산출물과 사전 등록된 품질 게이트(Gate) 중심으로 재구성합니다.
+
+```
+[6주 연구개발 마일스톤 및 단계별 통과 기준(Exit Criteria)]
+
+Week 1: 데이터 파이프라인 & API 어댑터 구축 ──▶ [Gate 1: 10,000건 스키마 무결성 100%]
+   │
+Week 2: 미학 세션 노드 & 다층 추출기 개발   ──▶ [Gate 2: Extraction Macro-F1 >= 0.85]
+   │
+Week 3: 취향 클러스터 진화 & 전향 엔진 구현 ──▶ [Gate 3: Switch Drift Recovery <= 2턴]
+   │
+Week 4: 멀티모달 Reranker & Tool 결합      ──▶ [Gate 4: Tool Exact Match >= 0.95]
+   │
+Week 5: B0~B5 고정 통제 실험 & Human Audit  ──▶ [Gate 5: B5 vs B0 NDCG 개선율 >= 15%]
+   │
+Week 6: 최종 논문/제안서 완성 및 실시간 데모 ──▶ [Final Gate: p95 지연시간 < 1.8초 달성]
+
+```
+
+* **Week 1 (데이터 및 기반 인프라)**:
+* 국립현대미술관 소장품 아카이브 및 공공문화정보 전시 API 어댑터 구축.
+
+
+* DINOv2 및 BGE-m3 기반 10,000건 하이브리드 벡터 DB 인덱싱.
+
+
+* *Exit Gate 1*: API 요청 응답 테스트 100건 통과 및 데이터 스키마 무결성 100%.
+
+
+
+
+* **Week 2 (단일 세션 메모리 및 추출 에이전트)**:
+* Aesthetic Session Node 구조화 프롬프트 및 `evidence_span` 추출 엔진 구현.
+
+
+* B0 (BM25), B1 (단일 턴 Dense) 기준선 구축.
+
+
+* *Exit Gate 2*: 프로필 속성 추출 Macro-F1 $\ge 0.85$ 달성.
+
+
+
+
+* **Week 3 (장기 취향 클러스터 및 전향 엔진)**:
+* Curatorial Taste Cluster 병합/분기 알고리즘 구현 및 지수 감쇄 가중치 적용.
+
+
+* 3개 페르소나 $\times$ 6개 시드 시뮬레이션 환경 구축.
+
+
+* *Exit Gate 3*: 페르소나 C 관심사 전환 시 구 취향 오염도 $\le 0.10$ 수렴 확인.
+
+
+
+
+* **Week 4 (하이브리드 랭킹 및 실시간 Tool 결합)**:
+* Cross-Encoder Reranker 파이프라인 통합 및 전시 API Tool Calling 연동.
+
+
+* Freshness 캐시 및 예외 Fallback 라우터 완성.
+
+
+* *Exit Gate 4*: 실시간 전시 상태 Tool Call Exact Match $\ge 0.95$ 확인.
+
+
+
+
+* **Week 5 (고정 통제 실험 및 인간 검수)**:
+* B0 ~ B5 전 비교군 동일 시드 고정 벤치마크 수행.
+
+
+* 큐레이터 2인 블라인드 정성 평가 및 통계 검정(Bootstrap CI) 산출.
+
+
+* *Exit Gate 5*: 제안 시스템(B5)이 B0 대비 NDCG@10 상대 개선율 15% 이상, 통계적 유의성($p < 0.01$) 확보.
+
+
+
+
+* **Week 6 (시스템 패키징 및 최종 보고서)**:
+* Streamlit 기반 대화형 멀티모달 도슨트 시연 프로토타입 패키징.
+* 최종 학술 제안서 보고서 및 12장 분량의 대상 수상형 슬라이드 덱 완성.
+
+
+
+
+
+---
+
+## 6. 결론: 본 제안서가 보장하는 탁월성 (Executive Summary)
+
+본 제안서는 기존의 단순한 '미술관 질의응답 챗봇'을 기획하는 것이 아닙니다.
+
+1. **이론적 깊이**: 미술사학과 감각철학에서 논의되는 미학적 조형 요소와 감상 맥락을 컴퓨터 비전 및 자연어 처리의 최신 기술(DINOv2, BGE-m3, A-MEM)로 구조화했습니다.
+
+
+2. **공학적 엄밀성**: 세션이 바뀌어도 지속되는 장기 미학 메모리(Session Node $\rightarrow$ Taste Cluster)의 인과적 기여도를 B0~B5 비교군과 6층 평가 체계(Extraction-Update-Retrieval-Ranking-Grounding-Faithfulness)로 증명하도록 설계되었습니다.
+
+
+3. **사회적 실행성**: 실시간 공공문화정보 API Tool Grounding을 통해 텍스트 속 환각을 원천 배제하고, "지금 당장 이번 주말에 찾아갈 수 있는 전시실"로 이용자를 이끄는 실천적 문화 복지를 완성합니다.
+
+이로써 본 프로젝트는 학술적 독창성, 기술적 구현 가능성, 그리고 예술 현장의 사회적 가치를 모두 충족하는 최고의 AI 큐레이션 연구 제안서가 될 것을 확약합니다.
