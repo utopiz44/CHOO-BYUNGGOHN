@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --navy:#0a1c3f;
+    --navy2:#12295c;
+    --cyan:#38d6f0;
+    --orange:#f7861f;
+    --green:#10a37f;
+    --purple:#7c5cd6;
+    --blue:#2f6fd0;
+    --red:#e04b4b;
+    --amber:#f0a92a;
+    --ink:#12203a;
+    --gray:#5b6a85;
+    --line:#d4dced;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:1050px; background:#fff;
+    font-family:"Malgun Gothic","맑은 고딕","Segoe UI",sans-serif;
+    color:var(--ink); -webkit-font-smoothing:antialiased;
+  }
+  .poster{width:1050px; background:#fff; padding-bottom:0}
+
+  /* ---------- HEADER ---------- */
+  header{
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(900px 380px at 88% 18%, rgba(56,214,240,.16), transparent 60%),
+      radial-gradient(700px 300px at 4% 90%, rgba(124,92,214,.20), transparent 60%),
+      linear-gradient(160deg,#08183a 0%,#0d2352 55%,#0a1b41 100%);
+    padding:20px 30px 18px;
+    color:#fff; text-align:center;
+    border-bottom:3px solid var(--cyan);
+  }
+  .circuit{position:absolute;inset:0;opacity:.20}
+  h1{
+    font-size:33.5px; line-height:1.1; font-weight:800; letter-spacing:-1.1px;
+    white-space:nowrap;
+    font-family:"Segoe UI","Malgun Gothic",sans-serif;
+    text-shadow:0 3px 14px rgba(0,0,0,.45);
+  }
+  .kr-sub{margin-top:7px; font-size:19px; font-weight:700; color:var(--cyan)}
+  .authors{margin-top:9px; font-size:13.5px; color:#e6edfa; letter-spacing:.1px}
+  .affil{margin-top:4px; font-size:12.8px; font-style:italic; color:#a9bede}
+  .claim{
+    margin:13px auto 0; max-width:930px;
+    display:flex; align-items:center; gap:16px; text-align:left;
+    background:rgba(9,26,60,.72);
+    border:2px solid var(--cyan); border-radius:12px;
+    padding:10px 18px; box-shadow:0 0 0 3px rgba(56,214,240,.10) inset;
+  }
+  .claim .ic{flex:0 0 38px}
+  .claim p{font-size:14.6px; line-height:1.45; color:#f2f7ff}
+  .claim b.lbl{color:var(--orange); font-weight:800}
+  .hl-c{color:var(--cyan); font-weight:800}
+  .hl-o{color:var(--orange); font-weight:800}
+
+  /* ---------- LAYOUT ---------- */
+  main{padding:16px 24px 0}
+  .rowA{display:grid; grid-template-columns:1.02fr 0.98fr 2.06fr; gap:16px}
+  .rowC{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:15px}
+  section{position:relative}
+  .shead{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+  .num{
+    width:24px;height:24px;border-radius:6px;background:var(--navy);color:#fff;
+    font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;
+    font-family:"Segoe UI",sans-serif; flex:0 0 24px;
+  }
+  .stitle{font-size:16px;font-weight:800;color:var(--navy);white-space:nowrap}
+  .stitle .en{font-size:12.6px;font-weight:700;color:var(--blue)}
+  .stitle .bar{color:#b9c6de; font-weight:400; margin:0 4px}
+  hr.rule{border:0;border-top:2px solid var(--navy);opacity:.16;margin:0 0 10px}
+
+  ul.bul{list-style:none}
+  ul.bul li{
+    position:relative; padding-left:13px; margin-bottom:7px;
+    font-size:12.8px; line-height:1.48; color:#2b3a56;
+  }
+  ul.bul li:before{
+    content:""; position:absolute; left:0; top:7px;
+    width:5px;height:5px;border-radius:50%;background:var(--navy);
+  }
+  ul.bul li b{color:var(--navy)}
+
+  .diag{
+    margin-top:6px; border:1.6px dashed var(--blue); border-radius:10px;
+    background:#f6f9ff; padding:10px 10px 8px;
+  }
+  .cap{font-size:11.4px;color:var(--gray);line-height:1.45;margin-top:7px}
+
+  /* idea cards */
+  .icard{
+    border:1.6px solid var(--line); border-left-width:5px; border-radius:10px;
+    padding:9px 12px; margin-bottom:9px; background:#fff;
+    box-shadow:0 1px 3px rgba(16,32,64,.05);
+  }
+  .icard h4{font-size:14px;font-weight:800;margin-bottom:4px}
+  .icard p{font-size:11.8px;line-height:1.46;color:#3d4c66}
+  .ic-g{border-left-color:var(--green)} .ic-g h4{color:var(--green)}
+  .ic-b{border-left-color:var(--blue)} .ic-b h4{color:var(--blue)}
+  .ic-o{border-left-color:var(--orange)} .ic-o h4{color:#d9740f}
+
+  /* method */
+  .mgrid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .comp{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px}
+  .badge{
+    flex:0 0 24px;height:24px;border-radius:6px;color:#fff;font-weight:800;font-size:13px;
+    display:flex;align-items:center;justify-content:center;font-family:"Segoe UI",sans-serif;
+  }
+  .comp .t{font-size:12.6px;line-height:1.35}
+  .comp .t b{font-size:13px}
+  .comp .t span{color:var(--gray);font-size:11.6px}
+  .panel{border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fbfcff}
+  .panel h5{font-size:13px;font-weight:800;color:var(--navy);margin-bottom:8px}
+
+  table.mx{border-collapse:collapse;width:100%;font-size:10.4px}
+  table.mx th{color:var(--navy);font-weight:800;padding:2px 0 4px;font-size:10.6px}
+  table.mx td{padding:1.5px 2px;text-align:center}
+  table.mx td.sys{text-align:left;color:#2b3a56;font-size:10.5px;white-space:nowrap;padding-right:4px}
+  .cell{display:block;width:100%;height:13px;border-radius:3px;line-height:13px;color:#fff;font-size:9px;font-weight:700}
+  .f{background:var(--green)} .p{background:var(--amber)} .a{background:#ccd6e6;color:#6b7a93}
+  .lg{display:flex;gap:10px;font-size:10.4px;color:var(--gray);margin-top:6px;align-items:center}
+  .lg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:3px;vertical-align:-1px}
+
+  .notes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .note{border-radius:9px;padding:8px 10px;font-size:11.4px;line-height:1.45}
+  .note b{display:block;font-size:11.8px;margin-bottom:2px}
+  .n-g{background:#eafaf4;border:1px solid #b9e6d6;color:#0d6b53}
+  .n-o{background:#fff4e6;border:1px solid #f7d5a8;color:#a35c07}
+
+  /* results */
+  .res{display:grid;grid-template-columns:1.32fr 1fr;gap:16px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{border-radius:11px;padding:9px 12px;border:1.6px solid}
+  .stat .big{font-size:25px;font-weight:800;line-height:1;font-family:"Segoe UI",sans-serif;white-space:nowrap}
+  .stat .big small{font-size:12px;font-weight:700}
+  .stat .tag{
+    display:inline-block;margin-top:6px;padding:2px 7px;border-radius:5px;
+    color:#fff;font-size:10.6px;font-weight:700;
+  }
+  .stat .sub{margin-top:5px;font-size:10.8px;color:var(--gray);line-height:1.38}
+  .s-red{background:#fff5f5;border-color:#f3c7c7} .s-red .big{color:var(--red)} .s-red .tag{background:var(--red)}
+  .s-blue{background:#f2f7ff;border-color:#c6d8f5} .s-blue .big{color:var(--blue)} .s-blue .tag{background:var(--blue)}
+  .s-green{background:#f0fbf7;border-color:#bfe7d8} .s-green .big{color:var(--green)} .s-green .tag{background:var(--green)}
+  .s-purple{background:#f7f4fe;border-color:#d6cbf3} .s-purple .big{color:var(--purple)} .s-purple .tag{background:var(--purple)}
+
+  .banner{
+    margin-top:12px;background:linear-gradient(150deg,#08183a,#12295c);
+    border-radius:11px;padding:10px 18px;color:#fff;text-align:center;
+    font-size:16px;font-weight:700;letter-spacing:-.2px;
+  }
+  .banner .star{color:#ffce3d;font-size:18px;margin-right:7px}
+
+  /* interpretation */
+  .chk{display:flex;gap:8px;padding:6.5px 0;border-bottom:1px dashed #dbe4f2}
+  .chk:last-child{border-bottom:0}
+  .chk .ci{flex:0 0 19px}
+  .chk p{font-size:12.1px;line-height:1.46;color:#2b3a56}
+  .concl{
+    display:flex;gap:10px;align-items:flex-start;
+    border:1.5px solid var(--line);border-left:5px solid;border-radius:10px;
+    padding:8px 11px;margin-bottom:8px;background:#fff;
+  }
+  .concl h4{font-size:13.2px;font-weight:800;margin-bottom:2px}
+  .concl p{font-size:11.3px;color:#41506b;line-height:1.42}
+  .c1{border-left-color:var(--green)} .c1 h4{color:var(--green)}
+  .c2{border-left-color:var(--blue)} .c2 h4{color:var(--blue)}
+  .c3{border-left-color:var(--orange)} .c3 h4{color:#d9740f}
+  .final{
+    margin-top:2px;background:linear-gradient(150deg,#0a1c3f,#14306b);
+    border-radius:11px;padding:11px 15px;text-align:center;color:#fff;
+  }
+  .final .l1{font-size:13.6px;font-weight:700;line-height:1.45}
+  .final .l2{font-size:14.6px;font-weight:800;color:var(--cyan);margin-top:4px}
+
+  footer{
+    margin-top:16px;background:linear-gradient(90deg,#08183a,#12295c,#08183a);
+    color:#c9d8f0;text-align:center;font-size:12px;padding:10px 0;
+    border-top:3px solid var(--cyan);
+  }
+</style>
+</head>
+<body>
+<div class="poster">
+
+<header>
+  <svg class="circuit" viewBox="0 0 1050 240" preserveAspectRatio="none">
+    <g stroke="#38d6f0" stroke-width="1.1" fill="none" opacity=".55">
+      <path d="M0 200 H120 V150 H240 V210 H360"/>
+      <path d="M690 30 H810 V80 H930 V25 H1050"/>
+      <path d="M40 40 H150 V90 H210"/>
+      <path d="M860 200 H960 V160 H1050"/>
+    </g>
+    <g fill="#38d6f0" opacity=".75">
+      <circle cx="120" cy="150" r="3.2"/><circle cx="240" cy="210" r="3.2"/>
+      <circle cx="810" cy="80" r="3.2"/><circle cx="930" cy="25" r="3.2"/>
+      <circle cx="150" cy="90" r="3.2"/><circle cx="960" cy="160" r="3.2"/>
+    </g>
+    <g stroke="#7c5cd6" stroke-width="1" fill="none" opacity=".45">
+      <circle cx="985" cy="120" r="86"/><circle cx="985" cy="120" r="62"/>
+    </g>
+  </svg>
+
+  <h1>Agent Harness for Large Language Model Agents: A Survey</h1>
+  <div class="kr-sub">에이전트 하네스 — 모델이 아니라 실행 하네스가 신뢰성을 결정한다</div>
+  <div class="authors">Qianyu Meng · Yanan Wang · Liyi Chen · Wei Wu · Yihang Li · Wenyuan Jiang · Qimeng Wang · Chengqiang Lu · Yan Gao · Yi Wu · Yao Hu</div>
+  <div class="affil">Preprints 2026 · DOI 10.20944/preprints202604.0428.v3 · 110+ papers · 23 systems · 9 open challenges</div>
+
+  <div class="claim">
+    <svg class="ic" viewBox="0 0 48 48" width="42" height="42">
+      <circle cx="24" cy="24" r="21" fill="none" stroke="#f7861f" stroke-width="3"/>
+      <circle cx="24" cy="24" r="13" fill="none" stroke="#38d6f0" stroke-width="2.6"/>
+      <circle cx="24" cy="24" r="5" fill="#f7861f"/>
+      <path d="M24 3 v9 M24 36 v9 M3 24 h9 M36 24 h9" stroke="#38d6f0" stroke-width="2.4"/>
+    </svg>
+    <p><b class="lbl">Core Claim:</b> 에이전트 실행 하네스 <b class="hl-c">H = (E, T, C, S, L, V)</b>는 암묵적 인프라가 아니라
+    <b class="hl-o">1급 아키텍처 객체</b>이며, 대규모 배포에서 <b class="hl-o">모델이 아닌 하네스</b>가 에이전트 신뢰성의 1차 결정 요인이다.</p>
+  </div>
+</header>
+
+<main>
+  <!-- ================= ROW A ================= -->
+  <div class="rowA">
+
+    <!-- 1 문제의식 -->
+    <section>
+      <div class="shead"><div class="num">1</div>
+        <div class="stitle">문제의식<span class="bar">|</span><span class="en">Research Problem</span></div>
+      </div>
+      <hr class="rule">
+      <ul class="bul">
+        <li>지배적 서사는 에이전트 성능을 <b>모델 능력</b>에 귀속시킨다. 본 서베이는 이 가정에 도전한다.</li>
+        <li>하네스는 프레임워크 구현 세부사항으로 취급되어, <b>정의·비교·검증 가능한 대상</b>이 아니었다.</li>
+        <li>동일 모델도 하네스에 따라 성능이 <b>10배 이상</b> 달라진다 — 성능 귀인 자체가 틀린다.</li>
+        <li>벤치마크 통과가 실제 배포 성공을 예측하지 못한다 (<b>평가 하네스 타당성 위기</b>). 기존 서베이는 도메인·모델 구조로 분류해 <b>신뢰성 격차를 설명하지 못한다</b>.</li>
+        <li><b>목표:</b> 하네스를 형식화하고, 시스템 간 비교 가능한 공통 축과 미해결 과제를 제시.</li>
+      </ul>
+
+      <div class="diag">
+        <svg viewBox="0 0 250 118" width="100%">
+          <rect x="6" y="14" width="66" height="34" rx="6" fill="#fff" stroke="#2f6fd0" stroke-width="1.6"/>
+          <text x="39" y="30" font-size="9.5" text-anchor="middle" fill="#12203a" font-weight="bold">모델(LLM)</text>
+          <text x="39" y="41" font-size="8" text-anchor="middle" fill="#5b6a85">엔진</text>
+
+          <rect x="96" y="8" width="70" height="46" rx="6" fill="#eaf3ff" stroke="#f7861f" stroke-width="1.8" stroke-dasharray="4 3"/>
+          <text x="131" y="26" font-size="9.5" text-anchor="middle" fill="#a35c07" font-weight="bold">하네스 ?</text>
+          <text x="131" y="38" font-size="7.6" text-anchor="middle" fill="#8a6a3a">암묵적 인프라</text>
+          <text x="131" y="48" font-size="7.6" text-anchor="middle" fill="#8a6a3a">(정의·측정 불가)</text>
+
+          <rect x="190" y="14" width="54" height="34" rx="6" fill="#fff" stroke="#e04b4b" stroke-width="1.6"/>
+          <text x="217" y="28" font-size="9" text-anchor="middle" fill="#c33" font-weight="bold">배포 실패</text>
+          <text x="217" y="40" font-size="7.6" text-anchor="middle" fill="#a35">신뢰성 붕괴</text>
+
+          <g stroke="#5b6a85" stroke-width="1.4" fill="none" marker-end="url(#ar)">
+            <path d="M72 31 H93"/><path d="M166 31 H187"/>
+          </g>
+          <defs><marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+            <path d="M0 0 L7 3.5 L0 7 z" fill="#5b6a85"/></marker></defs>
+
+          <text x="125" y="76" font-size="8.4" text-anchor="middle" fill="#2b3a56">"좋은 모델"만으로는 신뢰성이 확보되지 않는다.</text>
+          <text x="125" y="90" font-size="8.4" text-anchor="middle" fill="#2b3a56">실패 원인은 대부분 <tspan font-weight="bold" fill="#c33">저사양 환경·명세 부족</tspan>에 있다.</text>
+          <text x="125" y="106" font-size="8.4" text-anchor="middle" fill="#2b3a56">→ 하네스를 <tspan font-weight="bold" fill="#2f6fd0">통치 가능한 구조</tspan>로 만들어야 한다.</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 2 핵심 아이디어 -->
+    <section>
+      <div class="shead"><div class="num">2</div>
+        <div class="stitle">핵심 아이디어<span class="bar">|</span><span class="en">Core Ideas</span></div>
+      </div>
+      <hr class="rule">
+
+      <div class="icard ic-g">
+        <h4>◈ 형식적 하네스 정의</h4>
+        <p>하네스를 6-튜플 <b>H = (E, T, C, S, L, V)</b>로 정의하여, 암묵적 인프라를 명시적 연구 대상으로 격상.</p>
+      </div>
+      <div class="icard ic-b">
+        <h4>◎ Harness Completeness Matrix</h4>
+        <p>각 시스템이 6개 컴포넌트 중 무엇을 구현했는지 구조화 평가. 이질적 에이전트 시스템을 <b>공통 축에서 비교</b>.</p>
+      </div>
+      <div class="icard ic-o">
+        <h4>⚑ 9개 미해결 기술 과제</h4>
+        <p>보안·평가·프로토콜·컨텍스트·툴·메모리·계획·멀티에이전트·컴퓨트 경제학. 학계 부분해 vs <b>프로덕션 공백</b>을 분리 진단.</p>
+      </div>
+      <div class="icard" style="border-left-color:#7c5cd6">
+        <h4 style="color:#7c5cd6">⇄ 실무–학계 가교</h4>
+        <p>동료심사 연구와 Stripe·OpenAI·Cursor·METR의 <b>실배포 보고</b>를 함께 종합해 이론–실무 간극을 드러냄.</p>
+      </div>
+    </section>
+
+    <!-- 3 방법 -->
+    <section>
+      <div class="shead"><div class="num">3</div>
+        <div class="stitle">방법<span class="bar">|</span><span class="en">Method — H = (E, T, C, S, L, V)</span></div>
+      </div>
+      <hr class="rule">
+
+      <div class="mgrid">
+        <div>
+          <svg viewBox="0 0 300 176" width="100%">
+            <rect x="0.8" y="0.8" width="298" height="174" rx="9" fill="#f6f9ff" stroke="#c6d8f5"/>
+            <!-- center loop -->
+            <circle cx="150" cy="86" r="46" fill="#fff" stroke="#2f6fd0" stroke-width="2.2" stroke-dasharray="6 4"/>
+            <text x="150" y="82" font-size="10.5" text-anchor="middle" font-weight="bold" fill="#0a1c3f">E · 실행 루프</text>
+            <text x="150" y="95" font-size="7.4" text-anchor="middle" fill="#5b6a85">Observe→Think→Act</text>
+            <g fill="#2f6fd0">
+              <polygon points="150,34 156,46 144,46"/>
+              <polygon points="202,86 190,92 190,80"/>
+              <polygon points="150,138 144,126 156,126"/>
+            </g>
+            <!-- satellites -->
+            <g font-size="8.8" text-anchor="middle">
+              <g><rect x="8" y="10" width="72" height="26" rx="6" fill="#fff" stroke="#10a37f" stroke-width="1.6"/>
+                 <text x="44" y="21" font-weight="bold" fill="#10a37f">T · Tools</text>
+                 <text x="44" y="31" font-size="7.4" fill="#5b6a85">타입 카탈로그·라우팅</text></g>
+              <g><rect x="220" y="10" width="72" height="26" rx="6" fill="#fff" stroke="#7c5cd6" stroke-width="1.6"/>
+                 <text x="256" y="21" font-weight="bold" fill="#7c5cd6">C · Context</text>
+                 <text x="256" y="31" font-size="7.4" fill="#5b6a85">압축·검색·주입</text></g>
+              <g><rect x="8" y="70" width="72" height="26" rx="6" fill="#fff" stroke="#f7861f" stroke-width="1.6"/>
+                 <text x="44" y="81" font-weight="bold" fill="#d9740f">S · State</text>
+                 <text x="44" y="91" font-size="7.4" fill="#5b6a85">영속·크래시 복구</text></g>
+              <g><rect x="220" y="70" width="72" height="26" rx="6" fill="#fff" stroke="#e04b4b" stroke-width="1.6"/>
+                 <text x="256" y="81" font-weight="bold" fill="#e04b4b">L · Hooks</text>
+                 <text x="256" y="91" font-size="7.4" fill="#5b6a85">인증·정책·로깅</text></g>
+              <g><rect x="114" y="142" width="72" height="26" rx="6" fill="#fff" stroke="#2f6fd0" stroke-width="1.6"/>
+                 <text x="150" y="153" font-weight="bold" fill="#2f6fd0">V · Eval</text>
+                 <text x="150" y="163" font-size="7.4" fill="#5b6a85">트래젝토리·성공신호</text></g>
+            </g>
+            <g stroke="#9fb3d4" stroke-width="1.2">
+              <path d="M80 23 L112 60"/><path d="M220 23 L188 60"/>
+              <path d="M80 83 L106 86"/><path d="M220 83 L194 86"/>
+              <path d="M150 130 L150 142"/>
+            </g>
+          </svg>
+
+          <div style="margin-top:9px">
+            <div class="comp"><div class="badge" style="background:#2f6fd0">E</div>
+              <div class="t"><b>Execution Loop</b> <span>· 관찰-사고-행동 주기, 종료 조건, 오류 복구</span></div></div>
+            <div class="comp"><div class="badge" style="background:#10a37f">T</div>
+              <div class="t"><b>Tool Registry</b> <span>· 타입 지정 툴 카탈로그, 라우팅, 스키마 검증</span></div></div>
+            <div class="comp"><div class="badge" style="background:#7c5cd6">C</div>
+              <div class="t"><b>Context Manager</b> <span>· 컨텍스트 진입 판단, 압축, 검색</span></div></div>
+            <div class="comp"><div class="badge" style="background:#f7861f">S</div>
+              <div class="t"><b>State Store</b> <span>· 턴·세션 간 영속성, 크래시 복구</span></div></div>
+            <div class="comp"><div class="badge" style="background:#e04b4b">L</div>
+              <div class="t"><b>Lifecycle Hooks</b> <span>· 인증, 로깅, 정책 집행, 계측</span></div></div>
+            <div class="comp"><div class="badge" style="background:#0a1c3f">V</div>
+              <div class="t"><b>Evaluation Interface</b> <span>· 행동 트래젝토리, 중간 상태, 성공 신호</span></div></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <h5>Harness Completeness Matrix (발췌)</h5>
+            <table class="mx">
+              <thead><tr><th></th><th>E</th><th>T</th><th>C</th><th>S</th><th>L</th><th>V</th></tr></thead>
+              <tbody>
+                <tr><td class="sys">Claude Code</td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td></tr>
+                <tr><td class="sys">OpenClaw / PRISM</td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td></tr>
+                <tr><td class="sys">AIOS</td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td></tr>
+                <tr><td class="sys">OpenHands</td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td></tr>
+                <tr><td class="sys">SWE-agent</td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell f">✓</span></td></tr>
+                <tr><td class="sys">MetaGPT / AutoGen</td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td></tr>
+                <tr><td class="sys">CAMEL</td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell a">✗</span></td><td><span class="cell p">≈</span></td></tr>
+                <tr><td class="sys">LangChain</td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell a">✗</span></td></tr>
+                <tr><td class="sys">LangGraph</td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell a">✗</span></td><td><span class="cell a">✗</span></td></tr>
+                <tr><td class="sys">MemGPT</td><td><span class="cell a">✗</span></td><td><span class="cell a">✗</span></td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell a">✗</span></td><td><span class="cell a">✗</span></td></tr>
+                <tr><td class="sys">Reflexion</td><td><span class="cell p">≈</span></td><td><span class="cell a">✗</span></td><td><span class="cell p">≈</span></td><td><span class="cell f">✓</span></td><td><span class="cell a">✗</span></td><td><span class="cell p">≈</span></td></tr>
+                <tr><td class="sys">HAL</td><td><span class="cell f">✓</span></td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell f">✓</span></td></tr>
+                <tr><td class="sys">AgentBench / OSWorld</td><td><span class="cell f">✓</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell p">≈</span></td><td><span class="cell a">✗</span></td><td><span class="cell f">✓</span></td></tr>
+              </tbody>
+            </table>
+            <div class="lg"><span><i class="f"></i>완전 지원</span><span><i class="p"></i>부분</span><span><i class="a"></i>부재</span></div>
+          </div>
+
+          <div class="notes">
+            <div class="note n-g"><b>핵심 발견</b>프로덕션급 시스템은 <b>ETCSLV 전체</b>로 수렴하고, 연구 프로토타입은 2–3개만 구현한다.</div>
+            <div class="note n-o"><b>구성(composition) 문제</b>개별 컴포넌트는 잘 동작하나, 결합 시 <b>창발적 실패</b>가 발생한다.</div>
+          </div>
+          <div class="cap">L 결여 → 안전 정책 집행 불가 · V 결여 → 실패 디버깅 불가 · S 결여 → 크래시 복구 불가.
+          <b>여섯 컴포넌트를 모두 갖추지 않으면 프로덕션 신뢰성에 도달할 수 없다.</b></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= ROW B : RESULTS ================= -->
+  <section style="margin-top:20px">
+    <div class="shead"><div class="num">4</div>
+      <div class="stitle">핵심 결과<span class="bar">|</span><span class="en">Key Results — 하네스만 바꿔도 성능이 바뀐다</span></div>
+    </div>
+    <hr class="rule">
+
+    <div class="res">
+      <div class="panel" style="padding:12px 14px">
+        <h5 style="margin-bottom:2px">SWE-bench: 모델 고정, 하네스 edit-tool 포맷만 변경 (Pi Research)</h5>
+        <svg viewBox="0 0 470 228" width="100%">
+          <!-- axes -->
+          <g stroke="#c9d4e6" stroke-width="1" fill="none">
+            <path d="M56 18 V178 H452"/>
+          </g>
+          <g stroke="#eef2f8" stroke-width="1" fill="none">
+            <path d="M56 146 H452"/><path d="M56 114 H452"/><path d="M56 82 H452"/><path d="M56 50 H452"/><path d="M56 18 H452"/>
+          </g>
+          <g font-size="9" fill="#5b6a85" text-anchor="end">
+            <text x="50" y="181">0</text><text x="50" y="149">20</text><text x="50" y="117">40</text>
+            <text x="50" y="85">60</text><text x="50" y="53">80</text>
+          </g>
+          <text x="18" y="104" font-size="9.5" fill="#5b6a85" transform="rotate(-90 18 104)" text-anchor="middle">SWE-bench 해결률 (%)</text>
+
+          <!-- bar 1: 6.7% -> height = 6.7*1.6 = 10.7 -->
+          <rect x="104" y="167" width="96" height="11" rx="2" fill="#e04b4b"/>
+          <text x="152" y="160" font-size="17" font-weight="bold" fill="#e04b4b" text-anchor="middle">6.7%</text>
+          <text x="152" y="192" font-size="10" fill="#2b3a56" text-anchor="middle" font-weight="bold">기존 하네스</text>
+          <text x="152" y="204" font-size="8.6" fill="#5b6a85" text-anchor="middle">edit-tool 포맷 A</text>
+
+          <!-- bar 2: 68.3% -> height = 109 -->
+          <rect x="300" y="69" width="96" height="109" rx="2" fill="#10a37f"/>
+          <text x="348" y="61" font-size="17" font-weight="bold" fill="#10a37f" text-anchor="middle">68.3%</text>
+          <text x="348" y="192" font-size="10" fill="#2b3a56" text-anchor="middle" font-weight="bold">개선 하네스</text>
+          <text x="348" y="204" font-size="8.6" fill="#5b6a85" text-anchor="middle">edit-tool 포맷 B</text>
+
+          <!-- delta arrow -->
+          <g stroke="#f7861f" stroke-width="2" fill="none">
+            <path d="M212 150 C250 150 258 92 288 78" marker-end="url(#ar2)"/>
+          </g>
+          <defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0 0 L8 4 L0 8 z" fill="#f7861f"/></marker></defs>
+          <rect x="216" y="104" width="76" height="30" rx="5" fill="#fff4e6" stroke="#f7861f" stroke-width="1.4"/>
+          <text x="254" y="117" font-size="12.5" font-weight="bold" fill="#d9740f" text-anchor="middle">+61.6pp</text>
+          <text x="254" y="128" font-size="8.2" fill="#a35c07" text-anchor="middle">모델 변경 없음</text>
+
+          <text x="254" y="223" font-size="9" fill="#5b6a85" text-anchor="middle">Grok Code Fast 1 — 동일 모델, 하네스 툴 인터페이스만 교체</text>
+        </svg>
+        <div class="cap" style="margin-top:2px"><b>같은 모델이 10배 차이를 낸다.</b> 성능 개선의 원인을 모델에 귀인하는 관행이
+        하네스 설계라는 지배적 변수를 가린다.</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat s-blue">
+          <div class="big">1,300<small> PRs/주</small></div>
+          <span class="tag">Stripe Minions</span>
+          <div class="sub">사람이 작성한 코드 <b>0줄</b> — 하네스 우선 엔지니어링의 실증</div>
+        </div>
+        <div class="stat s-green">
+          <div class="big">1M<small> lines / 0 hand-written</small></div>
+          <span class="tag">OpenAI Codex</span>
+          <div class="sub">5개월간 전량 에이전트 작성. 실패 원인은 모델 능력이 아닌 <b>"명세가 부족한 환경"</b></div>
+        </div>
+        <div class="stat s-red">
+          <div class="big">−24.2<small>pp</small></div>
+          <span class="tag">METR</span>
+          <div class="sub">벤치마크 통과 PR의 <b>사람 머지율</b>이 더 낮고, 격차는 연 9.6pp 확대 — 평가 하네스 타당성 위기</div>
+        </div>
+        <div class="stat s-purple">
+          <div class="big">21,730<small> rollouts</small></div>
+          <span class="tag">HAL · AIOS</span>
+          <div class="sub">평가 통합으로 수 주 → 수 시간. AIOS 스케줄링으로 처리량 <b>2.1×</b></div>
+        </div>
+        <div class="stat s-green" style="grid-column:span 2;background:#f7fbff;border-color:#c6d8f5;padding:9px 10px">
+          <div style="display:flex;justify-content:space-between;gap:6px;text-align:center">
+            <div><div style="font-size:17px;font-weight:800;color:#2f6fd0;white-space:nowrap">+16.2pp</div><div class="sub" style="margin-top:2px;font-size:9.8px">SkillsBench<br>스킬 주입</div></div>
+            <div><div style="font-size:17px;font-weight:800;color:#d9740f;white-space:nowrap">−80%</div><div class="sub" style="margin-top:2px;font-size:9.8px">Vercel 툴 삭감<br>&gt;모델 업그레이드</div></div>
+            <div><div style="font-size:17px;font-weight:800;color:#e04b4b;white-space:nowrap">15–35%</div><div class="sub" style="margin-top:2px;font-size:9.8px">컨테이너<br>탈출률</div></div>
+            <div><div style="font-size:17px;font-weight:800;color:#7c5cd6;white-space:nowrap">1M tok</div><div class="sub" style="margin-top:2px;font-size:9.8px">태스크당 컨텍스트<br>(AgencyBench)</div></div>
+            <div><div style="font-size:17px;font-weight:800;color:#10a37f;white-space:nowrap">90%</div><div class="sub" style="margin-top:2px;font-size:9.8px">Mem0 토큰<br>절감</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="banner"><span class="star">★</span>하네스는 <span class="hl-c">섀시</span>, 모델은 <span class="hl-o">엔진</span> — "The harness is the chassis; the model is the engine."</div>
+  </section>
+
+  <!-- ================= ROW C ================= -->
+  <div class="rowC">
+    <section>
+      <div class="shead"><div class="num">5</div>
+        <div class="stitle">해석과 의의<span class="bar">|</span><span class="en">Interpretation</span></div>
+      </div>
+      <hr class="rule">
+      <div style="display:flex;gap:12px">
+        <div style="flex:0 0 132px">
+          <svg viewBox="0 0 132 210" width="132">
+            <rect x="1" y="1" width="130" height="208" rx="9" fill="#0a1c3f"/>
+            <g stroke="#38d6f0" stroke-width="1" opacity=".35" fill="none">
+              <path d="M8 40 H40 V22 H70"/><path d="M90 190 H120 V166"/>
+              <path d="M12 170 H36 V150"/>
+            </g>
+            <!-- head silhouette -->
+            <path d="M28 168 C18 120 30 74 62 66 C92 58 108 82 104 108 C101 128 88 132 88 146 L88 168 Z"
+                  fill="#123063" stroke="#38d6f0" stroke-width="1.6"/>
+            <!-- gears / brain -->
+            <circle cx="62" cy="106" r="20" fill="none" stroke="#38d6f0" stroke-width="1.4" stroke-dasharray="4 3"/>
+            <text x="62" y="103" font-size="9" fill="#38d6f0" text-anchor="middle" font-weight="bold">H =</text>
+            <text x="62" y="115" font-size="8" fill="#7ee7f7" text-anchor="middle">E T C S L V</text>
+            <!-- bottom icons -->
+            <g fill="none" stroke="#38d6f0" stroke-width="1.6">
+              <rect x="14" y="180" width="20" height="20" rx="4"/>
+              <rect x="42" y="180" width="20" height="20" rx="4"/>
+              <rect x="70" y="180" width="20" height="20" rx="4"/>
+              <rect x="98" y="180" width="20" height="20" rx="4"/>
+            </g>
+            <g fill="#38d6f0" font-size="9" text-anchor="middle">
+              <text x="24" y="194">⚙</text><text x="52" y="194">◉</text><text x="80" y="194">⛨</text><text x="108" y="194">↺</text>
+            </g>
+            <text x="66" y="26" font-size="8.6" fill="#7ee7f7" text-anchor="middle">Harness as Architecture</text>
+          </svg>
+        </div>
+        <div style="flex:1">
+          <div class="chk"><svg class="ci" viewBox="0 0 20 20" width="20"><circle cx="10" cy="10" r="9" fill="#10a37f"/><path d="M5.5 10.5 L8.5 13.5 L14.5 6.5" stroke="#fff" stroke-width="2" fill="none"/></svg>
+            <p>성능 귀인의 재조정: 모델 스케일링이 아니라 <b>하네스 설계</b>가 배포 신뢰성의 구속 조건(binding constraint)이다.</p></div>
+          <div class="chk"><svg class="ci" viewBox="0 0 20 20" width="20"><circle cx="10" cy="10" r="9" fill="#2f6fd0"/><path d="M5.5 10.5 L8.5 13.5 L14.5 6.5" stroke="#fff" stroke-width="2" fill="none"/></svg>
+            <p>ETCSLV는 <b>공통 비교 언어</b>를 제공한다 — 이전 서베이가 공통 항목으로 평가할 수 없던 시스템들을 직접 비교 가능.</p></div>
+          <div class="chk"><svg class="ci" viewBox="0 0 20 20" width="20"><circle cx="10" cy="10" r="9" fill="#7c5cd6"/><path d="M5.5 10.5 L8.5 13.5 L14.5 6.5" stroke="#fff" stroke-width="2" fill="none"/></svg>
+            <p>벤치마크–배포 괴리는 모델 문제가 아니라 <b>평가 인터페이스(V)의 설계 실패</b>로 재해석된다.</p></div>
+          <div class="chk"><svg class="ci" viewBox="0 0 20 20" width="20"><circle cx="10" cy="10" r="9" fill="#f7861f"/><path d="M5.5 10.5 L8.5 13.5 L14.5 6.5" stroke="#fff" stroke-width="2" fill="none"/></svg>
+            <p>보안·컨텍스트 경제학·비잔틴 내성은 개별 해법이 아니라 <b>조합 검증(compositional verification)</b>을 요구한다.</p></div>
+          <div class="chk"><svg class="ci" viewBox="0 0 20 20" width="20"><circle cx="10" cy="10" r="9" fill="#0a1c3f"/><path d="M5.5 10.5 L8.5 13.5 L14.5 6.5" stroke="#fff" stroke-width="2" fill="none"/></svg>
+            <p>독자: 에이전트 인프라 <b>연구자</b>, 프로덕션 <b>실무자</b>, 벤치마크 예측력을 이해해야 하는 <b>평가자</b>.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shead"><div class="num">6</div>
+        <div class="stitle">결론<span class="bar">|</span><span class="en">Conclusion &amp; Contributions</span></div>
+      </div>
+      <hr class="rule">
+
+      <div class="concl c1">
+        <svg viewBox="0 0 26 26" width="26" style="flex:0 0 26px"><circle cx="13" cy="13" r="12" fill="#10a37f"/><text x="13" y="18" font-size="13" fill="#fff" text-anchor="middle">◈</text></svg>
+        <div><h4>개념적 기여 — 하네스의 형식화</h4>
+        <p>H = (E,T,C,S,L,V) 6개 통치 컴포넌트로 하네스를 아키텍처 객체로 정의.</p></div>
+      </div>
+      <div class="concl c2">
+        <svg viewBox="0 0 26 26" width="26" style="flex:0 0 26px"><circle cx="13" cy="13" r="12" fill="#2f6fd0"/><text x="13" y="18" font-size="13" fill="#fff" text-anchor="middle">◎</text></svg>
+        <div><h4>방법론적 기여 — Completeness Matrix</h4>
+        <p>110+ 논문·23개 시스템을 6축으로 매핑, 이질적 시스템의 직접 비교를 최초로 가능하게 함.</p></div>
+      </div>
+      <div class="concl c3">
+        <svg viewBox="0 0 26 26" width="26" style="flex:0 0 26px"><circle cx="13" cy="13" r="12" fill="#f7861f"/><text x="13" y="18" font-size="13" fill="#fff" text-anchor="middle">⚑</text></svg>
+        <div><h4>미해결 과제 — 9개 기술 공백</h4>
+        <p>형식 보안 모델, 크로스-하네스 이식성, MCP/A2A 상호운용, 1M+ 토큰 컨텍스트 경제학, 비잔틴 내성, 조합 검증.</p></div>
+      </div>
+      <div class="concl" style="border-left-color:#7c5cd6">
+        <svg viewBox="0 0 26 26" width="26" style="flex:0 0 26px"><circle cx="13" cy="13" r="12" fill="#7c5cd6"/><text x="13" y="18" font-size="12" fill="#fff" text-anchor="middle">➔</text></svg>
+        <div><h4 style="color:#7c5cd6">향후 방향 — 8개 연구 축</h4>
+        <p>형식 하네스 명세 언어(DSL) · 크로스-하네스 벤치마크 · 에이전트 보안 택소노미 · 프로토콜 상호운용 ·
+        장기 지평 평가법 · 하네스 인지 파인튜닝 · 메모리 인터페이스 표준화 · 하네스 투명성 규격.</p></div>
+      </div>
+
+      <div class="final">
+        <div class="l1">하네스는 프레임워크의 구현 세부사항이 아니라, <b>측정·통치·검증되어야 하는 시스템 계층</b>이다.</div>
+        <div class="l2">모델을 키우기 전에, 하네스를 설계하라.</div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Meng et al., 2026 · <b>Agent Harness for Large Language Model Agents: A Survey</b> (v3) · 110+ papers · 23 systems · 9 challenges · README 요약 포스터
+</footer>
+</div>
+</body>
+</html>
